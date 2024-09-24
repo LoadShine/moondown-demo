@@ -1,0 +1,9 @@
+{
+  "version": "v1",
+  "packages": {
+    "moondown": {
+      "signature": "5b7a26e60283da1328c54242a7f3ac93",
+      "file": true
+    }
+  }
+}
