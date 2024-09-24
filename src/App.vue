@@ -7,11 +7,12 @@
 <script setup lang="ts">
 import {onMounted} from 'vue';
 import Moondown from 'moondown';
+import {initialData} from "./initialData.ts";
 
 onMounted(() => {
   const editorElement = document.getElementById('editor');
   if (editorElement) {
-    new Moondown(editorElement, '# Welcome to Moondown\n\nThis is a simple markdown editor.');
+    new Moondown(editorElement, initialData);
   }
 });
 </script>
@@ -39,7 +40,8 @@ onMounted(() => {
 }
 
 #editor .cm-scroller {
-  font-family: "Hiragino Maru Gothic ProN", "Yuanti SC", "Yu Gothic", Meiryo, sans-serif;
+  font-family: "Microsoft Yahei", "PingFang SC", "YouYuan", sans-serif;
+  color: #333;
   font-size: 16px;
   overflow: auto;
   scrollbar-width: none;
