@@ -1,0 +1,135 @@
+// src/App.tsx
+import { useState, useCallback } from 'react';
+import Moondown from './moondown-editor/moondown';
+import MoondownWrapper from './components/MoondownWrapper';
+
+const initialContent = `# Welcome to Moondown!
+
+This is a demo to test the Moondown editor inside a React application.
+
+## Features
+
+- **WYSIWYG-like experience**: Hides Markdown syntax when not focused.
+- **Tables**: Interactive table editing.
+- **Syntax Highlighting**: For code blocks.
+- **And much more...**
+
+---
+
+### Test Area
+
+Try editing this document. You can also use the buttons below to interact with the editor programmatically.
+
+> Blockquotes are supported too!
+
+\`\`\`javascript
+function greet() {
+  console.log("Hello, Moondown!");
+}
+\`\`\`
+
+| Header 1 | Header 2 | Header 3 |
+|----------|:--------:|---------:|
+| Cell 1   | Cell 2   | Cell 3   |
+| Cell 4   | Cell 5   | Cell 6   |
+
+`;
+
+function App() {
+    const [editorInstance, setEditorInstance] = useState<Moondown | null>(null);
+    const [editorContent, setEditorContent] = useState('');
+    const [newContent, setNewContent] = useState('## Hello from React!\n\nThis content was set by clicking the button.');
+    const [isSyntaxHiding, setIsSyntaxHiding] = useState(true); // 新增: 控制语法隐藏的 state
+
+    // 使用 useCallback 确保 onReady 函数引用稳定
+    const handleEditorReady = useCallback((instance: Moondown) => {
+        setEditorInstance(instance);
+    }, []);
+
+    const handleGetValue = () => {
+        if (editorInstance) {
+            const value = editorInstance.getValue();
+            setEditorContent(value);
+        }
+    };
+
+    const handleSetValue = () => {
+        if (editorInstance) {
+            editorInstance.setValue(newContent);
+        }
+    };
+
+    // 新增: 处理语法隐藏开关变化的函数
+    const handleToggleSyntaxHiding = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const enabled = e.target.checked;
+        setIsSyntaxHiding(enabled);
+        if (editorInstance) {
+            editorInstance.toggleSyntaxHiding(enabled);
+        }
+    };
+
+    return (
+        <div className="container mx-auto p-8 font-sans">
+            <header className="text-center mb-8">
+                <h1 className="text-4xl font-bold text-gray-800">Moondown Editor Demo</h1>
+                <p className="text-lg text-gray-600 mt-2">A React + Vite testbed for your CodeMirror-based editor.</p>
+            </header>
+
+            <main className="bg-white p-6 rounded-lg shadow-lg">
+                {/* 新增: 语法隐藏开关 */}
+                <div className="flex items-center justify-end mb-4">
+                    <label htmlFor="syntax-toggle" className="mr-2 text-sm font-medium text-gray-700">
+                        Hide Markdown Syntax
+                    </label>
+                    <input
+                        id="syntax-toggle"
+                        type="checkbox"
+                        checked={isSyntaxHiding}
+                        onChange={handleToggleSyntaxHiding}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                </div>
+
+                <MoondownWrapper
+                    initialValue={initialContent}
+                    onReady={handleEditorReady}
+                />
+
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Get Value Section */}
+                    <div className="flex flex-col">
+                        <button
+                            onClick={handleGetValue}
+                            className="mb-2 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
+                        >
+                            Get Editor Value
+                        </button>
+                        <textarea
+                            readOnly
+                            value={editorContent}
+                            className="w-full h-48 p-2 border rounded bg-gray-100 font-mono text-sm"
+                            placeholder="Click 'Get Editor Value' to see the raw Markdown here."
+                        />
+                    </div>
+
+                    {/* Set Value Section */}
+                    <div className="flex flex-col">
+                        <button
+                            onClick={handleSetValue}
+                            className="mb-2 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
+                        >
+                            Set Editor Value
+                        </button>
+                        <textarea
+                            value={newContent}
+                            onChange={(e) => setNewContent(e.target.value)}
+                            className="w-full h-48 p-2 border rounded font-mono text-sm"
+                        />
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}
+
+export default App;
