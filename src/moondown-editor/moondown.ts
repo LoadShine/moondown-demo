@@ -1,8 +1,9 @@
 // src/moondown-editor/moondown.ts
 import {EditorState} from '@codemirror/state';
 import {EditorView} from '@codemirror/view';
-import {defaultExtensions} from "./extensions/default-extensions.ts";
+import {defaultExtensions, themeCompartment} from "./extensions/default-extensions.ts";
 import { toggleSyntaxHidingEffect } from "./extensions/markdown-syntax-hiding/markdown-syntax-hiding-field.ts";
+import { darkTheme, lightTheme } from "./theme/base-theme.ts";
 
 class Moondown {
     private view: EditorView;
@@ -29,17 +30,21 @@ class Moondown {
         });
     }
 
-    // --- (新增方法) ---
-    /**
-     * Toggles the visibility of Markdown syntax markers.
-     * @param {boolean} enabled - If true, syntax will be hidden (default behavior). If false, it will be shown.
-     */
     toggleSyntaxHiding(enabled: boolean): void {
         this.view.dispatch({
             effects: toggleSyntaxHidingEffect.of(enabled)
         });
     }
-    // --- (结束新增) ---
+
+    /**
+     * Sets the editor theme to light or dark.
+     * @param {'light' | 'dark'} theme - The theme to apply.
+     */
+    setTheme(theme: 'light' | 'dark'): void {
+        this.view.dispatch({
+            effects: themeCompartment.reconfigure(theme === 'dark' ? darkTheme : lightTheme)
+        });
+    }
 
     destroy(): void {
         this.view.destroy();

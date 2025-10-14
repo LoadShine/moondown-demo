@@ -5,6 +5,7 @@ export default function computeCSS(edgeButtonSize: number): Element {
     styleNode.setAttribute('type', 'text/css')
 
     styleNode.textContent = `
+  /* --- Light Mode Table Styles --- */
   table.table-helper {
     width: 100%;
     display: inline-table;
@@ -16,21 +17,14 @@ export default function computeCSS(edgeButtonSize: number): Element {
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
-
   table.table-helper tr:first-child {
     font-weight: bold;
     background-color: #f0f0f0;
     color: #333;
   }
-
   table.table-helper tr:first-child td {
-    padding: 12px;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
     border-right: 1px solid #e0e0e0;
   }
-
   table.table-helper td {
     padding: 8px;
     border: 1px solid #e0e0e0;
@@ -39,70 +33,106 @@ export default function computeCSS(edgeButtonSize: number): Element {
     height: ${edgeButtonSize * 1.5}px;
     position: relative;
   }
-
   table.table-helper td:focus {
     background-color: #e6f7ff;
     outline: none;
   }
-
-  .table-helper-operate-button {
-    z-index: 3;
-  }
-
   .table-helper-operate-button {
     background-color: #fff;
     color: #4d5d75;
-  }
-
-  .table-helper-operate-button {
-    opacity: 0.5;
-    transition: 0.2s opacity ease;
-    background-color: #eee;
-    color: #333;
-    text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    position: absolute;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 3;
   }
 
-  .table-helper-operate-button.top,
-  .table-helper-operate-button.bottom {
-    width: ${edgeButtonSize * 1.2}px;
-    height: ${edgeButtonSize * 0.6}px;
-    border-radius: ${edgeButtonSize * 0.5}px;
+  /* --- Dark Mode Table Styles --- */
+  .dark table.table-helper {
+    border-color: #4a5568;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  }
+  .dark table.table-helper tr:first-child {
+    background-color: #2d3748;
+    color: #e2e8f0;
+  }
+  .dark table.table-helper tr:first-child td {
+    border-right-color: #4a5568;
+  }
+  .dark table.table-helper td {
+    border-color: #4a5568;
+    caret-color: #e2e8f0;
+  }
+  .dark table.table-helper td:focus {
+    background-color: #4a5568;
+  }
+  .dark .table-helper-operate-button {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
-  .table-helper-operate-button.left,
-  .table-helper-operate-button.right {
-    width: ${edgeButtonSize * 0.6}px;
-    height: ${edgeButtonSize * 1.2}px;
-    border-radius: ${edgeButtonSize * 0.5}px;
-  }
-
-  .table-helper-operate-button:hover {
-    opacity: 1;
-  }
-  
+  /* --- Tippy.js Menu Styles --- */
   .tippy-box[data-theme~='custom'] {
     background-color: white;
     color: black;
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
-    
   .tippy-box[data-theme~='custom'][data-placement^='bottom'] > .tippy-arrow::before {
     border-bottom-color: white;
   }
-    
   .tippy-box[data-theme~='custom'] .tippy-content {
     padding: 4px;
   }
-    
+  .tippy-button:hover {
+    background-color: #f0f0f0;
+  }
+  
+  /* Dark Mode Tippy.js */
+  .dark .tippy-box[data-theme~='custom'] {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  .dark .tippy-box[data-theme~='custom'][data-placement^='bottom'] > .tippy-arrow::before {
+    border-bottom-color: #2d3748;
+  }
+   .dark .tippy-box[data-theme~='custom'][data-placement^='right'] > .tippy-arrow::before {
+    border-right-color: #2d3748;
+  }
+  .dark .tippy-button:hover {
+    background-color: #4a5568;
+  }
+
+  /* --- Common, Unchanged Styles --- */
+  table.table-helper tr:first-child td {
+    padding: 12px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .table-helper-operate-button {
+    z-index: 3;
+    opacity: 0.5;
+    transition: 0.2s opacity ease;
+    text-align: center;
+    cursor: pointer;
+    position: absolute;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .table-helper-operate-button:hover {
+    opacity: 1;
+  }
+  .table-helper-operate-button.top, .table-helper-operate-button.bottom {
+    width: ${edgeButtonSize * 1.2}px;
+    height: ${edgeButtonSize * 0.6}px;
+    border-radius: ${edgeButtonSize * 0.5}px;
+  }
+  .table-helper-operate-button.left, .table-helper-operate-button.right {
+    width: ${edgeButtonSize * 0.6}px;
+    height: ${edgeButtonSize * 1.2}px;
+    border-radius: ${edgeButtonSize * 0.5}px;
+  }
   .tippy-button {
     border: none;
     background: none;
@@ -111,17 +141,11 @@ export default function computeCSS(edgeButtonSize: number): Element {
     border-radius: 2px;
     transition: background-color 0.3s;
   }
-    
-  .tippy-button:hover {
-    background-color: #f0f0f0;
-  }
-    
   .tippy-button i {
     display: block;
     width: 16px;
     height: 16px;
   }
-  
   .alignment-options {
     display: flex;
     flex-wrap: wrap;

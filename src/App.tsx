@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Moondown from './moondown-editor/moondown';
 import MoondownWrapper from './components/MoondownWrapper';
 
@@ -39,12 +39,24 @@ function App() {
     const [editorInstance, setEditorInstance] = useState<Moondown | null>(null);
     const [editorContent, setEditorContent] = useState('');
     const [newContent, setNewContent] = useState('## Hello from React!\n\nThis content was set by clicking the button.');
-    const [isSyntaxHiding, setIsSyntaxHiding] = useState(true); // 新增: 控制语法隐藏的 state
+    const [isSyntaxHiding, setIsSyntaxHiding] = useState(true);
+    const [theme, setTheme] = useState<'light' | 'dark'>('light'); // 新增: 控制主题的 state
 
     // 使用 useCallback 确保 onReady 函数引用稳定
     const handleEditorReady = useCallback((instance: Moondown) => {
         setEditorInstance(instance);
     }, []);
+
+    // 监听主题变化，更新编辑器和页面
+    useEffect(() => {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        editorInstance?.setTheme(theme);
+    }, [theme, editorInstance]);
+
 
     const handleGetValue = () => {
         if (editorInstance) {
@@ -59,7 +71,6 @@ function App() {
         }
     };
 
-    // 新增: 处理语法隐藏开关变化的函数
     const handleToggleSyntaxHiding = (e: React.ChangeEvent<HTMLInputElement>) => {
         const enabled = e.target.checked;
         setIsSyntaxHiding(enabled);
@@ -68,27 +79,48 @@ function App() {
         }
     };
 
+    const handleThemeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTheme(e.target.checked ? 'dark' : 'light');
+    };
+
     return (
-        <div className="container mx-auto p-8 font-sans">
+        <div className="container mx-auto p-8 font-sans bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
             <header className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-gray-800">Moondown Editor Demo</h1>
-                <p className="text-lg text-gray-600 mt-2">A React + Vite testbed for your CodeMirror-based editor.</p>
+                <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100">Moondown Editor Demo</h1>
+                <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">A React + Vite testbed for your CodeMirror-based editor.</p>
             </header>
 
-            <main className="bg-white p-6 rounded-lg shadow-lg">
-                {/* 新增: 语法隐藏开关 */}
-                <div className="flex items-center justify-end mb-4">
-                    <label htmlFor="syntax-toggle" className="mr-2 text-sm font-medium text-gray-700">
-                        Hide Markdown Syntax
-                    </label>
-                    <input
-                        id="syntax-toggle"
-                        type="checkbox"
-                        checked={isSyntaxHiding}
-                        onChange={handleToggleSyntaxHiding}
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
+            <main className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div className="flex items-center justify-end mb-4 space-x-4">
+                    {/* 语法隐藏开关 */}
+                    <div className="flex items-center">
+                        <label htmlFor="syntax-toggle" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Hide Markdown Syntax
+                        </label>
+                        <input
+                            id="syntax-toggle"
+                            type="checkbox"
+                            checked={isSyntaxHiding}
+                            onChange={handleToggleSyntaxHiding}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    {/* 主题切换开关 */}
+                    <div className="flex items-center">
+                        <label htmlFor="theme-toggle" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Dark Mode
+                        </label>
+                        <input
+                            id="theme-toggle"
+                            type="checkbox"
+                            checked={theme === 'dark'}
+                            onChange={handleThemeChange}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                    </div>
                 </div>
+
 
                 <MoondownWrapper
                     initialValue={initialContent}
@@ -107,7 +139,7 @@ function App() {
                         <textarea
                             readOnly
                             value={editorContent}
-                            className="w-full h-48 p-2 border rounded bg-gray-100 font-mono text-sm"
+                            className="w-full h-48 p-2 border rounded bg-gray-100 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 font-mono text-sm"
                             placeholder="Click 'Get Editor Value' to see the raw Markdown here."
                         />
                     </div>
@@ -123,7 +155,7 @@ function App() {
                         <textarea
                             value={newContent}
                             onChange={(e) => setNewContent(e.target.value)}
-                            className="w-full h-48 p-2 border rounded font-mono text-sm"
+                            className="w-full h-48 p-2 border rounded font-mono text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                         />
                     </div>
                 </div>

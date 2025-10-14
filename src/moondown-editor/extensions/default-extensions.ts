@@ -1,5 +1,5 @@
 // src/extensions/default-extensions.ts
-import {type Extension} from '@codemirror/state';
+import {type Extension, Compartment} from '@codemirror/state';
 import {drawSelection, EditorView, keymap, rectangularSelection} from '@codemirror/view';
 import {indentOnInput} from '@codemirror/language';
 import {markdown} from '@codemirror/lang-markdown';
@@ -12,13 +12,16 @@ import {GFM} from "@lezer/markdown";
 import {Mark} from "./mark-parser";
 import {finalNewLine} from "./final-new-line";
 import {tableExtension} from "./table";
-import {baseTheme} from "../theme/base-theme.ts";
+import {lightTheme} from "../theme/base-theme.ts"; // Import lightTheme as default
 import {slashCommand} from "./slash-command";
 import {imageExtension} from "./image";
 import {Underline} from "./underline-parser";
 import {fencedCode} from "./fenced-code";
 import {blockquote} from "./blockquote";
 import {bubbleMenu} from "./bubble-menu";
+
+// Create a compartment for the theme
+export const themeCompartment = new Compartment();
 
 export const defaultExtensions: Extension[] = [
     tableExtension(),
@@ -41,5 +44,6 @@ export const defaultExtensions: Extension[] = [
         addKeymap: false,
     }),
     finalNewLine,
-    baseTheme
+    // Initialize the compartment with the light theme
+    themeCompartment.of(lightTheme)
 ];

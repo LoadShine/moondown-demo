@@ -1,4 +1,4 @@
-/*src/index.css*/
+/* src/index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,6 +10,7 @@
     text-overflow: ellipsis;
 }
 
+/* Light Mode Bubble Menu */
 .cm-bubble-menu {
     position: absolute;
     display: flex;
@@ -23,7 +24,6 @@
     z-index: 1000;
     will-change: opacity, transform;
 }
-
 .cm-bubble-menu-item {
     position: relative;
     display: flex;
@@ -37,11 +37,9 @@
     cursor: pointer;
     transition: all 0.2s ease;
 }
-
 .cm-bubble-menu-item:hover {
     background: rgba(0, 0, 0, 0.05);
 }
-
 .cm-bubble-menu-item.active {
     background: rgba(147, 51, 234, 0.1);
     color: rgb(147, 51, 234);
@@ -57,7 +55,8 @@
     position: absolute;
     top: 100%;
     left: 0;
-    min-width: 180px;background: rgba(255, 255, 255, 0.95);  /* 增加不透明度 */
+    min-width: 180px;
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
@@ -69,13 +68,58 @@
     transform: translateY(-10px);
     transition: all 0.2s ease;
 }
+.cm-bubble-menu-sub-label {
+    font-size: 14px;
+    color: #1a1a1a;
+}
 
+.dark .cm-bubble-menu {
+    background: rgba(30, 30, 30, 0.85);
+    border-color: rgba(70, 70, 70, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+.dark .cm-bubble-menu-item {
+    color: #e0e0e0;
+}
+.dark .cm-bubble-menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+.dark .cm-bubble-menu-item.active {
+    background: rgba(187, 134, 252, 0.15);
+    color: rgb(187, 134, 252);
+}
+.dark .cm-bubble-menu-dropdown {
+    background: rgba(30, 30, 30, 0.95);
+    border-color: rgba(70, 70, 70, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+.dark .cm-bubble-menu-sub-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+.dark .cm-bubble-menu-sub-item.active {
+    background: rgba(187, 134, 252, 0.15);
+    color: rgb(187, 134, 252);
+}
+.dark .cm-bubble-menu-sub-item.active .cm-bubble-menu-sub-icon {
+    color: rgb(187, 134, 252);
+}
+.dark .cm-bubble-menu-sub-item.active .cm-bubble-menu-sub-label {
+    color: rgb(187, 134, 252);
+}
+.dark .cm-bubble-menu-sub-label {
+    color: #e0e0e0;
+}
+
+.cm-bubble-menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 .cm-bubble-menu-item:hover .cm-bubble-menu-dropdown {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
-
 .cm-bubble-menu-sub-item {
     display: flex;
     align-items: center;
