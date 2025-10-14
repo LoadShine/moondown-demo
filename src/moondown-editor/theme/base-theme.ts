@@ -82,7 +82,7 @@ export const editorBaseTheme = EditorView.theme({
         display: "none"
     },
     ".cm-visible-markdown": {
-        color: secondaryText, // Changed from rose to light gray
+        color: secondaryText,
         opacity: "0.8"
     },
 
@@ -104,7 +104,7 @@ export const editorBaseTheme = EditorView.theme({
         }
     },
     ".cm-hr-line-selected .cm-visible-markdown": {
-        color: secondaryText // Changed to light gray to match
+        color: secondaryText
     },
 
     // Blockquote styling
@@ -350,6 +350,103 @@ export const editorBaseTheme = EditorView.theme({
     },
     ".cm-fenced-code-line .hljs-strong": {
         fontWeight: "bold",
+    },
+
+    ".cm-slash-command-menu": {
+        position: "absolute",
+        zIndex: 100,
+        backgroundColor: "#ffffff",
+        border: "1px solid #e0e0e0",
+        borderRadius: "6px",
+        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+        padding: "8px 0",
+        maxHeight: "300px",
+        overflow: "hidden auto",
+        fontFamily: "Arial, sans-serif",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+    },
+    ".cm-slash-command-menu::-webkit-scrollbar": {
+        display: "none",
+    },
+
+    ".cm-slash-command-item": {
+        padding: "8px 16px",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        transition: "background-color 0.2s",
+    },
+    ".cm-slash-command-item:hover": {
+        backgroundColor: "#f0f0f0",
+    },
+    ".cm-slash-command-item.selected": {
+        backgroundColor: "#e8e8e8",
+    },
+
+    ".cm-slash-command-icon": {
+        marginRight: "12px",
+        display: "flex",
+        alignItems: "center",
+    },
+    ".cm-slash-command-icon svg": {
+        width: "16px",
+        height: "16px",
+        color: "#666",
+    },
+    ".cm-slash-command-title": {
+        fontSize: "14px",
+        color: "#333",
+    },
+    ".cm-slash-command-divider": {
+        margin: "8px 0",
+        border: "none",
+        borderTop: "1px solid #e0e0e0",
+    },
+
+    ".cm-new-text": {
+        animation: "colorChange 2s forwards",
+    },
+
+    ".cm-loading-widget": {
+        display: "inline-flex",
+        alignItems: "center",
+        padding: "2px 5px",
+        backgroundColor: "#f0f0f0",
+        borderRadius: "3px",
+        fontSize: "12px",
+        color: "#666",
+    },
+
+    ".cm-loading-spinner": {
+        display: "inline-block",
+        width: "12px",
+        height: "12px",
+        marginRight: "5px",
+        border: "2px solid #666",
+        borderTopColor: "transparent",
+        borderRadius: "50%",
+        animation: "spin 1s linear infinite",
+    },
+
+    "@keyframes colorChange": {
+        "0%, 99%": {
+            color: "#e11d48",
+            opacity: 0.7,
+        },
+        "100%": {
+            color: "#333333",
+            opacity: 1,
+        }
+    },
+
+    "@keyframes spin": {
+        "0%": {
+            transform: "rotate(0deg)",
+        },
+        "100%": {
+            transform: "rotate(360deg)",
+        }
     },
 }, {dark: false});
 
