@@ -93,6 +93,19 @@
     background: rgba(0, 0, 0, 0.05);
 }
 
+.cm-bubble-menu-sub-item.active {
+    background: rgba(147, 51, 234, 0.1);
+    color: rgb(147, 51, 234);
+}
+
+.cm-bubble-menu-sub-item.active .cm-bubble-menu-sub-icon {
+    color: rgb(147, 51, 234);
+}
+
+.cm-bubble-menu-sub-item.active .cm-bubble-menu-sub-label {
+    color: rgb(147, 51, 234);
+}
+
 .cm-bubble-menu-sub-icon {
     display: flex;
     align-items: center;

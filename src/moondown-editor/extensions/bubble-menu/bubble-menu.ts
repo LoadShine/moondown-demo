@@ -122,28 +122,41 @@ export class BubbleMenu implements PluginValue {
                 ],
             });
 
-            // 更新活动状态
-            this.items.forEach(item => {
-                if (item.isActive) {
-                    const button = this.dom.querySelector(`[data-name="${item.name}"]`) as HTMLButtonElement;
-                    if (button) {
-                        button.classList.toggle('active', item.isActive(this.view.state));
-                    }
-                }
-                if (item.subItems) {
-                    item.subItems.forEach(subItem => {
-                        if (subItem.isActive) {
-                            const subButton = this.dom.querySelector(`[data-name="${item.name}"] .cm-bubble-menu-dropdown [data-name="${subItem.name}"]`) as HTMLButtonElement;
-                            if (subButton) {
-                                subButton.classList.toggle('active', subItem.isActive(this.view.state));
-                            }
-                        }
-                    });
-                }
-            });
+            // 更新活动状态 - 修改这部分
+            this.updateActiveStates();
 
             // 强制更新 Popper 位置
             this.popper.update();
+        });
+    }
+
+    // 更新激活状态
+    private updateActiveStates() {
+        this.items.forEach(item => {
+            // 更新主菜单项状态
+            if (item.isActive) {
+                const button = this.dom.querySelector(`[data-name="${item.name}"]`) as HTMLButtonElement;
+                if (button) {
+                    button.classList.toggle('active', item.isActive(this.view.state));
+                }
+            }
+
+            // 更新子菜单项状态
+            if (item.subItems) {
+                item.subItems.forEach(subItem => {
+                    if (subItem.isActive) {
+                        // 使用更简单的选择器
+                        const subButton = this.dom.querySelector(
+                            `[data-name="${subItem.name}"][data-parent="${item.name}"]`
+                        ) as HTMLButtonElement;
+
+                        if (subButton) {
+                            const isActive = subItem.isActive(this.view.state);
+                            subButton.classList.toggle('active', isActive);
+                        }
+                    }
+                });
+            }
         });
     }
 
@@ -269,6 +282,8 @@ export class BubbleMenu implements PluginValue {
                     const subButton = document.createElement('button');
                     subButton.className = 'cm-bubble-menu-sub-item';
                     subButton.setAttribute('data-name', subItem.name);
+                    // 添加父项目标识，便于查询
+                    subButton.setAttribute('data-parent', item.name);
 
                     if (subItem.icon) {
                         const subIconWrapper = document.createElement('span');
