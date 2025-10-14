@@ -1,6 +1,6 @@
 // src/components/MoondownWrapper.tsx
 import React, { useRef, useEffect } from 'react';
-import Moondown from '../moondown-editor/moondown'; // 直接从我们创建的目录导入
+import Moondown from '../moondown/moondown'; // 直接从我们创建的目录导入
 
 interface MoondownWrapperProps {
     initialValue?: string;

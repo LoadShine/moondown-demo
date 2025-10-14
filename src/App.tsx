@@ -1,6 +1,6 @@
 // src/App.tsx
 import { useState, useCallback, useEffect } from 'react';
-import Moondown from './moondown-editor/moondown';
+import Moondown from './moondown/moondown';
 import MoondownWrapper from './components/MoondownWrapper';
 
 const initialContent = `# Welcome to Moondown!
