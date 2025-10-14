@@ -246,24 +246,56 @@ export const editorBaseTheme = EditorView.theme({
         color: lightBlue,
         borderBottom: `1px solid ${lightBlue}`,
     },
-    ".cm-image-widget": {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        maxWidth: "100%",
-        margin: "12px 0",
+
+    '.cm-image-widget': {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        margin: '1.5em 0',
+        position: 'relative',
+        transition: 'opacity 0.3s ease',
     },
-    ".cm-image-widget img": {
-        maxWidth: "100%",
-        height: "auto",
+    '.cm-image-widget img': {
+        maxWidth: '100%',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+        margin: '0.5em',
+        transition: 'box-shadow 0.3s ease',
+    },
+    '.cm-image-widget .cm-image-alt': {
+        marginTop: '0.75em',
+        color: '#999',
+        fontSize: '0.75em',
+        fontWeight: '400',
+    },
+    ".cm-image-widget.selected": {
+        outline: "2px solid #e11d48",
         borderRadius: "8px",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
     },
-    ".cm-image-caption": {
-        textAlign: "center",
-        color: secondaryText,
-        fontSize: "0.9em",
-        marginTop: "8px",
+    ".cm-image-wrapper": {
+        position: "relative",
+        display: "inline-block",
+        overflow: "visible",
+    },
+    '.cm-image-placeholder': {
+        background: '#f5f5f5',
+        border: '2px dashed #ddd',
+        borderRadius: '12px',
+        padding: '2em',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#999',
+        fontSize: '0.9em',
+        transition: 'all 0.3s ease',
+    },
+    ".cm-image-error": {
+        padding: '0.75em',
+        color: '#d93025',
+        fontSize: '0.9em',
+        background: 'rgba(217, 48, 37, 0.05)',
+        borderRadius: '8px',
+        marginTop: '0.5em',
     },
     ".cm-strikethrough-widget": {
         textDecoration: "line-through",
@@ -273,6 +305,10 @@ export const editorBaseTheme = EditorView.theme({
         backgroundColor: "#FEFCBF",
         padding: "2px 4px",
         borderRadius: "4px",
+    },
+    ".cm-underline-widget": {
+        textDecoration: "underline",
+        color: "#718096",
     },
 
     // Syntax highlighting for code blocks

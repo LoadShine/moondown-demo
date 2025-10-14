@@ -1,4 +1,4 @@
-// src/extensions/blockquote-keymap/keymaps.ts
+// src/extensions/blockquote/keymaps.ts
 import {type Extension} from "@codemirror/state";
 import {EditorView, keymap} from "@codemirror/view";
 

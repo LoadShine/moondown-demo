@@ -1,9 +1,9 @@
 // src/moondown-editor/extensions/markdown-syntax-hiding/markdown-syntax-hiding-field.ts
 import {StateField, EditorState, StateEffect} from '@codemirror/state';
-import {EditorView, Decoration, type DecorationSet} from '@codemirror/view';
+import {EditorView, Decoration, type DecorationSet, WidgetType} from '@codemirror/view';
 import {syntaxTree} from '@codemirror/language';
+import {LinkWidget} from "./link-widget.ts";
 
-// --- (新增) ---
 // Effect to toggle the syntax hiding feature
 export const toggleSyntaxHidingEffect = StateEffect.define<boolean>();
 
@@ -19,7 +19,6 @@ export const syntaxHidingState = StateField.define<boolean>({
         return value;
     },
 });
-// --- (结束新增) ---
 
 
 const hiddenMarkdown = Decoration.mark({class: 'cm-hidden-markdown'});
@@ -46,10 +45,8 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
         const {state} = transaction;
         const selection = state.selection.main;
 
-        // --- (修改) ---
         // Get the current hiding state from our new StateField
         const isHidingEnabled = state.field(syntaxHidingState);
-        // --- (结束修改) ---
 
         syntaxTree(state).iterate({
             enter: (node) => {
@@ -73,18 +70,13 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                         });
                     }
 
-                    // --- (修改) ---
-                    // Hide only if not selected AND hiding is enabled
                     if (!isSelected && isHidingEnabled) {
-                        // --- (结束修改) ---
-                        // Hide opening fence
                         const openingEnd = fencedCodeStart.from + 3 + language.length;
                         decorations.push({
                             from: fencedCodeStart.from,
                             to: openingEnd,
                             decoration: hiddenMarkdown
                         });
-                        // Hide closing fence
                         decorations.push({
                             from: fencedCodeEnd.to - 3,
                             to: fencedCodeEnd.to,
@@ -169,7 +161,7 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                             decoration: hiddenMarkdown
                         });
                     }
-                } else if (node.type.name === 'ListItem') { // <<<--- Logic for list items
+                } else if (node.type.name === 'ListItem') {
                     // Find the marker for the list item
                     const listMarkNode = node.node.getChild('ListMark');
                     if (listMarkNode) {
@@ -183,34 +175,9 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                             });
                         }
                     }
-                } else if (['Emphasis', 'StrongEmphasis', 'InlineCode', 'Strikethrough', 'Mark'].includes(node.type.name)) {
-                    // --- (修改) ---
+                } else if (['Emphasis', 'StrongEmphasis'].includes(node.type.name)) {
                     const decorationType = (isSelected || !isHidingEnabled) ? visibleMarkdown : hiddenMarkdown;
-                    // --- (结束修改) ---
-
                     if (node.type.name === 'StrongEmphasis') {
-                        decorations.push({
-                            from: start,
-                            to: start + 2,
-                            decoration: decorationType
-                        });
-                        decorations.push({
-                            from: end - 2,
-                            to: end,
-                            decoration: decorationType
-                        });
-                    } else if (node.type.name === 'InlineCode') {
-                        decorations.push({
-                            from: start,
-                            to: start + 1,
-                            decoration: decorationType
-                        });
-                        decorations.push({
-                            from: end - 1,
-                            to: end,
-                            decoration: decorationType
-                        });
-                    } else if (node.type.name === 'Strikethrough' || node.type.name === 'Mark') {
                         decorations.push({
                             from: start,
                             to: start + 2,
@@ -233,6 +200,33 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                             decoration: decorationType
                         });
                     }
+                } else if (node.type.name === 'InlineCode') {
+                    if (!isSelected) {
+                        const inlineCodeContent = state.doc.sliceString(start, end);
+                        const replacement = Decoration.replace({
+                            widget: new class extends WidgetType {
+                                toDOM() {
+                                    const span = document.createElement("span");
+                                    span.className = "cm-inline-code-widget";
+                                    span.textContent = inlineCodeContent.slice(1, -1); // Remove backticks
+                                    return span;
+                                }
+
+                                eq(other: this) {
+                                    return other.toDOM().textContent === this.toDOM().textContent;
+                                }
+
+                                ignoreEvent() {
+                                    return false;
+                                }
+                            }
+                        });
+                        decorations.push({from: start, to: end, decoration: replacement});
+                    } else {
+                        const decorationType = (isSelected || !isHidingEnabled) ? visibleMarkdown : hiddenMarkdown;
+                        decorations.push({from: start, to: start + 1, decoration: decorationType});
+                        decorations.push({from: end - 1, to: end, decoration: decorationType});
+                    }
                 } else if (node.type.name.startsWith('ATXHeading')) {
                     const headerLevel = parseInt(node.type.name.slice(-1));
                     // --- (修改) ---
@@ -244,34 +238,112 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                         decoration: decorationType
                     });
                 } else if (node.type.name === 'Link') {
+                    const decorationType = (isSelected || !isHidingEnabled) ? visibleMarkdown : hiddenMarkdown;
                     const linkText = state.doc.sliceString(start, end);
-                    const linkMatch = linkText.match(/\[([^\]]*)\]\(([^)]+)\)/);
+                    const linkMatch = linkText.match(/\[([^\]]+)\]\(([^)]+)\)/);
                     if (linkMatch) {
-                        // --- (修改) ---
+                        const displayText = linkMatch[1] || linkMatch[2];
+                        if (!isSelected) {
+                            const replacement = Decoration.replace({
+                                widget: new LinkWidget(displayText, linkText, start),
+                                inclusive: true
+                            });
+                            decorations.push({from: start, to: end, decoration: replacement});
+                        } else {
+                            const linkStart = start + linkText.indexOf('[');
+                            const linkEnd = start + linkText.indexOf(']') + 1;
+                            decorations.push({from: linkStart, to: linkEnd, decoration: decorationType});
+                            const urlStart = start + linkText.indexOf('(');
+                            const urlEnd = start + linkText.indexOf(')') + 1;
+                            decorations.push({from: urlStart, to: urlEnd, decoration: decorationType});
+                        }
+                    }
+                } else if (node.type.name === 'Strikethrough') {
+                    if (!isSelected) {
+                        const strikethroughContent = state.doc.sliceString(start + 2, end - 2);
+                        const replacement = Decoration.replace({
+                            widget: new class extends WidgetType {
+                                toDOM() {
+                                    const span = document.createElement("span");
+                                    span.className = "cm-strikethrough-widget";
+                                    span.textContent = strikethroughContent;
+                                    return span;
+                                }
+
+                                eq(other: this) {
+                                    return other.toDOM().textContent === this.toDOM().textContent;
+                                }
+
+                                ignoreEvent() {
+                                    return false;
+                                }
+                            }
+                        });
+                        decorations.push({from: start, to: end, decoration: replacement});
+                    } else {
                         const decorationType = (isSelected || !isHidingEnabled) ? visibleMarkdown : hiddenMarkdown;
-                        // --- (结束修改) ---
-                        const linkStart = start + linkText.indexOf('[');
-                        const linkEnd = start + linkText.indexOf(']') + 1;
-                        decorations.push({
-                            from: linkStart,
-                            to: linkEnd,
-                            decoration: decorationType
+                        decorations.push({from: start, to: start + 2, decoration: decorationType});
+                        decorations.push({from: end - 2, to: end, decoration: decorationType});
+                    }
+                } else if (node.type.name === 'Mark') {
+                    if (!isSelected) {
+                        const highlightContent = state.doc.sliceString(start + 2, end - 2);
+                        const replacement = Decoration.replace({
+                            widget: new class extends WidgetType {
+                                toDOM() {
+                                    const span = document.createElement("span");
+                                    span.className = "cm-highlight-widget";
+                                    span.textContent = highlightContent;
+                                    return span;
+                                }
+
+                                eq(other: this) {
+                                    return other.toDOM().textContent === this.toDOM().textContent;
+                                }
+
+                                ignoreEvent() {
+                                    return false;
+                                }
+                            }
                         });
-                        const urlStart = start + linkText.indexOf('(');
-                        const urlEnd = start + linkText.indexOf(')') + 1;
-                        decorations.push({
-                            from: urlStart,
-                            to: urlEnd,
-                            decoration: decorationType
+                        decorations.push({from: start, to: end, decoration: replacement});
+                    } else {
+                        const decorationType = (isSelected || !isHidingEnabled) ? visibleMarkdown : hiddenMarkdown;
+                        decorations.push({from: start, to: start + 2, decoration: decorationType});
+                        decorations.push({from: end - 2, to: end, decoration: decorationType});
+                    }
+                } else if (node.type.name === 'Underline') {
+                    if (!isSelected) {
+                        const underlineContent = state.doc.sliceString(start + 1, end - 1);
+                        const replacement = Decoration.replace({
+                            widget: new class extends WidgetType {
+                                toDOM() {
+                                    const span = document.createElement("span");
+                                    span.className = "cm-underline-widget";
+                                    span.textContent = underlineContent;
+                                    return span;
+                                }
+
+                                eq(other: this) {
+                                    return other.toDOM().textContent === this.toDOM().textContent;
+                                }
+
+                                ignoreEvent() {
+                                    return false;
+                                }
+                            }
                         });
+                        decorations.push({from: start, to: end, decoration: replacement});
+                    } else {
+                        const decorationType = (isSelected || !isHidingEnabled) ? visibleMarkdown : hiddenMarkdown;
+                        decorations.push({from: start, to: start + 1, decoration: decorationType});
+                        decorations.push({from: end - 1, to: end, decoration: decorationType});
                     }
                 } else if (node.type.name === 'Image') {
                     const imageText = state.doc.sliceString(start, end);
                     const imageMatch = imageText.match(/!\[([^\]]*)\]\(([^)]+)\)/);
                     if (imageMatch) {
-                        // --- (修改) ---
                         const decorationType = (isSelected || !isHidingEnabled) ? visibleMarkdown : hiddenMarkdown;
-                        // --- (结束修改) ---
                         const alt = imageMatch[1];
                         decorations.push({
                             from: start,

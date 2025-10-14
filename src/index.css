@@ -2,3 +2,210 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cm-bubble-menu {
+    position: absolute;
+    display: flex;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 6px;
+    z-index: 1000;
+    will-change: opacity, transform;
+}
+
+.cm-bubble-menu-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 6px;
+    border-radius: 6px;
+    color: #1a1a1a;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cm-bubble-menu-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.cm-bubble-menu-item.active {
+    background: rgba(147, 51, 234, 0.1);
+    color: rgb(147, 51, 234);
+}
+
+.cm-bubble-menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cm-bubble-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 180px;background: rgba(255, 255, 255, 0.95);  /* 增加不透明度 */
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 4px;
+    margin-top: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+}
+
+.cm-bubble-menu-item:hover .cm-bubble-menu-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.cm-bubble-menu-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cm-bubble-menu-sub-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.cm-bubble-menu-sub-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+
+.cm-bubble-menu-sub-label {
+    font-size: 14px;
+    color: #1a1a1a;
+}
+
+.cm-slash-command-menu {
+    position: absolute;
+    z-index: 100;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
+    max-height: 300px;
+    overflow: hidden auto;
+    font-family: Arial, sans-serif;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.cm-slash-command-menu::-webkit-scrollbar {
+    display: none;
+}
+
+.cm-slash-command-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.cm-slash-command-item:hover {
+    background-color: #f0f0f0;
+}
+
+.cm-slash-command-item.selected {
+    background-color: #e8e8e8;
+}
+
+.cm-slash-command-icon {
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.cm-slash-command-icon svg {
+    width: 16px;
+    height: 16px;
+    color: #666;
+}
+
+.cm-slash-command-title {
+    font-size: 14px;
+    color: #333;
+}
+
+.cm-slash-command-divider {
+    margin: 8px 0;
+    border: none;
+    border-top: 1px solid #e0e0e0;
+}
+
+@keyframes colorChange {
+    0%, 99% {
+        color: #e11d48;
+        opacity: 0.7;
+    }
+    100% {
+        color: #333333;
+        opacity: 1;
+    }
+}
+
+.cm-new-text {
+    animation: colorChange 2s forwards;
+}
+
+.cm-loading-widget {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 5px;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #666;
+}
+
+.cm-loading-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 5px;
+    border: 2px solid #666;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+

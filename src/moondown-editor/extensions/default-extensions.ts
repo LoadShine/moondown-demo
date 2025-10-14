@@ -10,25 +10,34 @@ import {correctList} from "./correct-list";
 import {markdownSyntaxHiding} from "./markdown-syntax-hiding";
 import {GFM} from "@lezer/markdown";
 import {Mark} from "./mark-parser";
-import {blockquoteKeymap} from "./blockquote-keymap";
 import {finalNewLine} from "./final-new-line";
 import {tableExtension} from "./table";
 import {baseTheme} from "../theme/base-theme.ts";
+import {slashCommand} from "./slash-command";
+import {imageExtension} from "./image";
+import {Underline} from "./underline-parser";
+import {fencedCode} from "./fenced-code";
+import {blockquote} from "./blockquote";
+import {bubbleMenu} from "./bubble-menu";
 
 export const defaultExtensions: Extension[] = [
-    tableExtension,
+    tableExtension(),
     history(),
     drawSelection(),
     rectangularSelection(),
     indentOnInput(),
-    correctList,
-    blockquoteKeymap,
+    slashCommand(),
+    correctList(),
+    fencedCode(),
+    blockquote(),
+    bubbleMenu(),
+    imageExtension(),
     keymap.of([indentWithTab, ...defaultKeymap, ...completionKeymap, ...historyKeymap, ...closeBracketsKeymap]),
     EditorView.lineWrapping,
     markdownSyntaxHiding(),
     markdown({
         codeLanguages: languages,
-        extensions: [GFM, Mark],
+        extensions: [GFM, Mark, Underline],
         addKeymap: false,
     }),
     finalNewLine,

@@ -3,7 +3,9 @@ import {Compartment, type Extension} from "@codemirror/state";
 import {tablePositions} from "./table-position.ts";
 import {renderTables} from "./render-tables.ts";
 
-export const tableExtension: Extension = [
-    tablePositions,
-    (new Compartment()).of(renderTables)
-];
+export function tableExtension(): Extension {
+    return [
+        tablePositions,
+        (new Compartment()).of(renderTables)
+    ];
+}
