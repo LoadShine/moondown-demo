@@ -175,8 +175,8 @@ export class BubbleMenu implements PluginValue {
     private createItems(): BubbleMenuItem[] {
         return [
             {
-                name: 'Format',
-                icon: 'Type',
+                name: 'Heading',
+                icon: 'Heading',
                 type: 'dropdown',
                 subItems: [
                     {
@@ -197,6 +197,13 @@ export class BubbleMenu implements PluginValue {
                         action: view => setHeader(view, 3),
                         isActive: state => isHeaderActive(state, 3),
                     },
+                ]
+            },
+            {
+                name: 'List',
+                icon: 'List',
+                type: 'dropdown',
+                subItems: [
                     {
                         name: 'Ordered List',
                         // @ts-expect-error ignore
@@ -248,6 +255,12 @@ export class BubbleMenu implements PluginValue {
                         icon: 'Underline',
                         action: view => toggleInlineStyle(view, '~'),
                         isActive: state => isInlineStyleActive(state, '~'),
+                    },
+                    {
+                        name: 'Inline Code',
+                        icon: 'Code',
+                        action: view => toggleInlineStyle(view, '`'),
+                        isActive: state => isInlineStyleActive(state, '`'),
                     },
                 ]
             }
