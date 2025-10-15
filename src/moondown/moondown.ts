@@ -4,7 +4,7 @@ import { EditorView } from '@codemirror/view';
 import { defaultExtensions, themeCompartment } from "./extensions/default-extensions";
 import { toggleSyntaxHidingEffect } from "./extensions/markdown-syntax-hiding/markdown-syntax-hiding-field";
 import { darkTheme, lightTheme } from "./theme/base-theme";
-import type { EditorConfig, Theme } from "./core/types/editor-types";
+import type { EditorConfig, Theme } from "./core";
 
 /**
  * Moondown - A modern, feature-rich markdown editor built on CodeMirror 6
