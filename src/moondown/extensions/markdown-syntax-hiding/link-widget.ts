@@ -27,7 +27,6 @@ export class LinkWidget extends WidgetType {
         return other.displayText === this.displayText && other.fullLink === this.fullLink && other.start === this.start;
     }
 
-    // 4. 告诉 CodeMirror 忽略 mousedown 事件，因为我们已经自己处理了
     ignoreEvent(event: Event): boolean {
         return event.type === 'mousedown';
     }
