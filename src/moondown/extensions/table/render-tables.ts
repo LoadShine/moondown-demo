@@ -6,7 +6,7 @@ import type {SyntaxNode, SyntaxNodeRef} from "@lezer/common";
 import { debounce } from 'lodash';
 import {tablePositions, updateTablePosition} from "./table-position.ts";
 import TableEditor from "./table-editor.ts";
-import {parseNode, rangeInSelection} from "./table-functions.ts";
+import {parseNode} from "./table-functions.ts";
 import {type TableEditorOptions} from "./types.ts";
 
 class TableWidget extends WidgetType {
@@ -146,10 +146,6 @@ function renderWidgets (
             from,
             to,
             enter: (node) => {
-                if (rangeInSelection(state, node.from, node.to)) {
-                    return
-                }
-
                 if (!shouldHandleNode(node)) {
                     return
                 }
