@@ -1,19 +1,17 @@
 // src/moondown/extensions/bubble-menu/content-functions.ts
 import { EditorView } from "@codemirror/view";
 import { EditorState, type ChangeSpec } from "@codemirror/state";
-import { MARKDOWN_MARKERS } from "../../core/constants";
-import { 
-  getLinesInRange, 
-  applyChanges, 
-  getTextWithContext,
-  SELECTION 
-} from "../../core/utils/editor-utils";
+import {
+    getLinesInRange,
+    applyChanges,
+    getTextWithContext,
+    SELECTION
+} from "../../core";
 import {
     escapeRegExp,
     createHeadingPrefix,
-    isOrderedListItem,
     extractListNumber, isUnorderedListItem
-} from "../../core/utils/string-utils";
+} from "../../core";
 
 /**
  * Functions for manipulating markdown content in the editor
@@ -31,7 +29,7 @@ export function setHeader(view: EditorView, level: number): boolean {
     const { from, to } = state.selection.main;
     const headerPrefix = createHeadingPrefix(level);
     const lines = getLinesInRange(state, from, to);
-    
+
     const changes: ChangeSpec[] = lines.map(line => {
         // Toggle off if already this heading level
         if (line.text.startsWith(headerPrefix)) {
@@ -41,7 +39,7 @@ export function setHeader(view: EditorView, level: number): boolean {
                 insert: ''
             };
         }
-        
+
         // Replace existing heading with new level
         const existingHeaderMatch = line.text.match(/^#+\s/);
         if (existingHeaderMatch) {
@@ -51,11 +49,11 @@ export function setHeader(view: EditorView, level: number): boolean {
                 insert: headerPrefix
             };
         }
-        
+
         // Add new heading
         return { from: line.from, insert: headerPrefix };
     });
-    
+
     applyChanges(view, changes);
     return true;
 }
@@ -70,7 +68,7 @@ export function toggleList(view: EditorView, ordered: boolean): boolean {
     const { state } = view;
     const { from, to } = state.selection.main;
     const lines = getLinesInRange(state, from, to);
-    
+
     // Determine starting number for ordered lists
     let currentNumber = 1;
     const fromLine = state.doc.lineAt(from);
@@ -81,10 +79,10 @@ export function toggleList(view: EditorView, ordered: boolean): boolean {
             currentNumber = prevNumber + 1;
         }
     }
-    
+
     const changes: ChangeSpec[] = lines.map(line => {
         const lineText = line.text;
-        
+
         if (ordered) {
             const existingNumber = extractListNumber(lineText);
             if (existingNumber !== null) {
@@ -109,7 +107,7 @@ export function toggleList(view: EditorView, ordered: boolean): boolean {
             return { from: line.from, insert: '- ' };
         }
     });
-    
+
     applyChanges(view, changes);
     return true;
 }
@@ -123,7 +121,7 @@ export function toggleList(view: EditorView, ordered: boolean): boolean {
 export function toggleInlineStyle(view: EditorView, mark: string): boolean {
     const { state } = view;
     const { from, to } = state.selection.main;
-    
+
     // Get text with context around selection
     const contextLength = mark.length * SELECTION.MARKER_CONTEXT_LENGTH;
     const { text: textToCheck, start } = getTextWithContext(
@@ -255,7 +253,7 @@ export function isHeaderActive(state: EditorState, level: number): boolean {
  */
 export function isInlineStyleActive(state: EditorState, marker: string): boolean {
     const { from, to } = state.selection.main;
-    
+
     // Get text with context
     const contextLength = marker.length * SELECTION.MARKER_CONTEXT_LENGTH;
     const { text: textToCheck, start } = getTextWithContext(
@@ -306,7 +304,7 @@ export function isInlineStyleActive(state: EditorState, marker: string): boolean
 export function isListActive(state: EditorState, ordered: boolean): boolean {
     const { from } = state.selection.main;
     const line = state.doc.lineAt(from);
-    
+
     if (ordered) {
         return extractListNumber(line.text) !== null;
     } else {

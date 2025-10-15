@@ -13,9 +13,9 @@ import {
     toggleInlineStyle,
     toggleList
 } from "./content-functions";
-import { CSS_CLASSES, ICON_SIZES, POPPER_CONFIG, MARKDOWN_MARKERS } from "../../core/constants";
-import { createElement, createIconElement } from "../../core/utils/dom-utils";
-import { isMarkdownImage } from "../../core/utils/string-utils";
+import { CSS_CLASSES, ICON_SIZES, POPPER_CONFIG, MARKDOWN_MARKERS } from "../../core";
+import { createElement, createIconElement } from "../../core";
+import { isMarkdownImage } from "../../core";
 
 /**
  * BubbleMenu - A floating toolbar that appears on text selection
@@ -194,7 +194,7 @@ export class BubbleMenu implements PluginValue {
     private handleMouseUp(_event: MouseEvent): void {
         const { state } = this.view;
         const { from, to } = state.selection.main;
-        
+
         if (from !== to && !this.isImageSelection(state, from, to)) {
             this.view.dispatch({
                 effects: showBubbleMenu.of({ pos: Math.max(from, to), items: this.items })
@@ -202,6 +202,20 @@ export class BubbleMenu implements PluginValue {
         } else {
             this.hide();
         }
+    }
+
+    /**
+     * Clears selection and refocuses editor
+     */
+    private clearSelectionAndFocus(): void {
+        // Use requestAnimationFrame to ensure DOM updates are complete
+        requestAnimationFrame(() => {
+            const currentPos = this.view.state.selection.main.head;
+            this.view.dispatch({
+                selection: { anchor: currentPos, head: currentPos },
+            });
+            this.view.focus();
+        });
     }
 
     /**
@@ -344,6 +358,7 @@ export class BubbleMenu implements PluginValue {
                         e.stopPropagation();
                         await subItem.action(this.view);
                         this.hide();
+                        this.clearSelectionAndFocus();
                     });
 
                     dropdown.appendChild(subButton);
@@ -355,6 +370,7 @@ export class BubbleMenu implements PluginValue {
                     e.preventDefault();
                     item.action!(this.view);
                     this.hide();
+                    this.clearSelectionAndFocus();
                 });
             }
 

@@ -13,6 +13,7 @@ import { correctList } from "./correct-list";
 import { markdownSyntaxHiding } from "./markdown-syntax-hiding";
 import { Mark } from "./mark-parser";
 import { Underline } from "./underline-parser";
+import { Strikethrough } from "./strikethrough-parser";
 import { finalNewLine } from "./final-new-line";
 import { tableExtension } from "./table";
 import { slashCommand } from "./slash-command";
@@ -37,14 +38,14 @@ export const themeCompartment = new Compartment();
 export const defaultExtensions: Extension[] = [
     // Table editing support
     tableExtension(),
-    
+
     // History and undo/redo
     history(),
-    
+
     // Selection and editing
     rectangularSelection(),
     indentOnInput(),
-    
+
     // Custom extensions
     slashCommand(),
     correctList(),
@@ -52,7 +53,7 @@ export const defaultExtensions: Extension[] = [
     blockquote(),
     bubbleMenu(),
     imageExtension(),
-    
+
     // Keymaps
     keymap.of([
         indentWithTab,
@@ -61,21 +62,21 @@ export const defaultExtensions: Extension[] = [
         ...historyKeymap,
         ...closeBracketsKeymap
     ]),
-    
+
     // Editor behavior
     EditorView.lineWrapping,
     markdownSyntaxHiding(),
-    
+
     // Markdown language support
     markdown({
         codeLanguages: languages,
-        extensions: [GFM, Mark, Underline],
+        extensions: [GFM, Mark, Underline, Strikethrough],
         addKeymap: false,
     }),
-    
+
     // Final newline
     finalNewLine,
-    
+
     // Default theme (light)
     themeCompartment.of(lightTheme)
 ];
