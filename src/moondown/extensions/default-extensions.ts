@@ -1,6 +1,6 @@
 // src/moondown/extensions/default-extensions.ts
 import {type Extension, Compartment} from '@codemirror/state';
-import {drawSelection, EditorView, keymap, rectangularSelection} from '@codemirror/view';
+import {EditorView, keymap, rectangularSelection} from '@codemirror/view';
 import {indentOnInput} from '@codemirror/language';
 import {markdown} from '@codemirror/lang-markdown';
 import {defaultKeymap, history, historyKeymap, indentWithTab} from "@codemirror/commands";
@@ -26,7 +26,6 @@ export const themeCompartment = new Compartment();
 export const defaultExtensions: Extension[] = [
     tableExtension(),
     history(),
-    drawSelection(),
     rectangularSelection(),
     indentOnInput(),
     slashCommand(),
