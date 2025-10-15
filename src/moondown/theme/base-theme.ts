@@ -172,20 +172,6 @@ const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) 
             backgroundColor: colors.codeBackground,
             zIndex: -1,
         },
-        ".cm-fenced-code.cm-fenced-code-first-line": {
-            paddingTop: "8px",
-        },
-        ".cm-fenced-code.cm-fenced-code-last-line": {
-            paddingBottom: "8px",
-        },
-        ".cm-fenced-code.cm-fenced-code-first-line::before": {
-            borderTopLeftRadius: "6px",
-            borderTopRightRadius: "6px",
-        },
-        ".cm-fenced-code.cm-fenced-code-last-line::before": {
-            borderBottomLeftRadius: "6px",
-            borderBottomRightRadius: "6px",
-        },
 
         // List styling
         ".cm-bullet-list": { color: colors.marker, fontWeight: "bold" },

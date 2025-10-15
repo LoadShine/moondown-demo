@@ -4,7 +4,7 @@ import {StateField, RangeSetBuilder, EditorState} from "@codemirror/state"
 import {syntaxTree} from "@codemirror/language"
 import {
     fencedCodeDecoration,
-    fencedCodeFirstLineDecoration, fencedCodeLastLineDecoration,
+    // fencedCodeFirstLineDecoration, fencedCodeLastLineDecoration,
     hideLineDecoration
 } from "./decorations.ts";
 
@@ -52,40 +52,6 @@ export const fencedCodeBackgroundPlugin = StateField.define({
                             to: endLine.from,
                             decoration: hideLineDecoration
                         })
-
-                        // 新的第一行和最后一行添加特殊装饰
-                        const newStartLine = startLine.to + 1
-                        const newEndLineTo = endLine.from - 1
-                        const newEndLineFrom = state.doc.lineAt(newEndLineTo).from
-
-                        if (newStartLine < state.doc.length) {
-                            ranges.push({
-                                from: newStartLine,
-                                to: newStartLine,
-                                decoration: fencedCodeFirstLineDecoration
-                            })
-                        }
-                        if (newEndLineFrom >= 0) {
-                            ranges.push({
-                                from: newEndLineFrom,
-                                to: newEndLineFrom,
-                                decoration: fencedCodeLastLineDecoration
-                            })
-                        }
-                    } else {
-                        // 光标在代码块中或代码块只有一行,为第一行和最后一行添加特殊装饰
-                        ranges.push({
-                            from: startLine.from,
-                            to: startLine.from,
-                            decoration: fencedCodeFirstLineDecoration
-                        })
-                        if (startLine.number !== endLine.number) {
-                            ranges.push({
-                                from: endLine.from,
-                                to: endLine.from,
-                                decoration: fencedCodeLastLineDecoration
-                            })
-                        }
                     }
                 }
             }
