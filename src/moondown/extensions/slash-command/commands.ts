@@ -54,7 +54,7 @@ function insertAtCursor(
  */
 export const slashCommands: SlashCommandOption[] = [
     {
-        title: "AI 续写",
+        title: "AI Continue Writing",
         icon: "bot",
         execute: async (view: EditorView) => ghostWriterExecutor(view)
     },

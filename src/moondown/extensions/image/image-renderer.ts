@@ -31,7 +31,7 @@ export const imageWidgetPlugin = ViewPlugin.fromClass(
             const builder = new RangeSetBuilder<Decoration>();
             const imageSizes = view.state.field(imageSizeField);
 
-            // 收集所有需要添加的装饰器
+            // Collect all decorations that need to be added
             const decorationsToAdd: {from: number, to: number, decoration: Decoration}[] = [];
 
             for (const {from, to} of view.visibleRanges) {
@@ -86,15 +86,15 @@ export const imageWidgetPlugin = ViewPlugin.fromClass(
                 });
             }
 
-            // 按照 from 位置排序
+            // Sort by from position
             decorationsToAdd.sort((a, b) => a.from - b.from);
 
-            // 按顺序添加装饰器
+            // Add decorations in order
             for (const {from, to, decoration} of decorationsToAdd) {
                 builder.add(from, to, decoration);
             }
 
-            // 清理不再使用的缓存
+            // Clean up unused cache
             for (const [key, widget] of imageWidgetCache) {
                 if (!view.state.doc.sliceString(widget.from, widget.to).includes(widget.src)) {
                     imageWidgetCache.delete(key);

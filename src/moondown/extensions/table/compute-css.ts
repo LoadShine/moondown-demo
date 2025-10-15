@@ -1,4 +1,26 @@
 // src/moondown/extensions/table/compute-css.ts
+
+/**
+ * CSS style generator for table helper functionality
+ *
+ * This module generates dynamic CSS styles for the table editing interface,
+ * including styling for table cells, operation buttons, and contextual menus.
+ * It supports both light and dark themes with responsive design.
+ */
+
+/**
+ * Generates CSS styles for table helper interface
+ *
+ * Creates a comprehensive stylesheet that includes:
+ * - Table styling with borders, shadows, and rounded corners
+ * - Cell styling with focus states and minimum dimensions
+ * - Operation button styling with hover effects
+ * - Tippy.js menu integration
+ * - Theme support for both light and dark modes
+ *
+ * @param edgeButtonSize - Base size for table operation buttons (affects button dimensions and border radius)
+ * @returns Style element containing all table helper CSS rules
+ */
 export default function computeCSS(edgeButtonSize: number): Element {
     const styleNode = document.createElement('style')
     styleNode.setAttribute('id', 'tableHelperCSS')

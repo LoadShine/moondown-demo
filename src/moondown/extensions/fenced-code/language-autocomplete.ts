@@ -1,7 +1,22 @@
 // src/moondown/extensions/fenced-code/language-autocomplete.ts
+
+/**
+ * Language identifier autocompletion for fenced code blocks
+ *
+ * This module provides intelligent autocompletion for programming language
+ * identifiers in markdown fenced code blocks. When users type ``` followed
+ * by a language name, it suggests matching programming languages.
+ */
+
 import {autocompletion, CompletionContext} from "@codemirror/autocomplete";
 
-// 定义语言列表，用于自动补全
+/**
+ * Supported programming languages for code block syntax highlighting
+ *
+ * This list contains popular programming languages that are commonly
+ * used in fenced code blocks. Each language is configured as a
+ * keyword type completion for better visual distinction.
+ */
 const languageNames = [
     {label: "javascript", type: "keyword"},
     {label: "python", type: "keyword"},
@@ -12,31 +27,60 @@ const languageNames = [
     {label: "go", type: "keyword"},
 ]
 
-// 定义自动补全源，只在 ``` 后的语言标识符位置提供补全
+/**
+ * Provides language identifier autocompletion in fenced code blocks
+ *
+ * This function acts as a completion source for CodeMirror's autocompletion
+ * system. It specifically targets the language identifier position that
+ * appears immediately after triple backticks (```) in markdown code blocks.
+ *
+ * @param context - The completion context containing editor state and cursor position
+ * @returns Completion result with matching language options, or null if not in a code block
+ *
+ * @example
+ * When user types "```jav" and triggers completion:
+ * - Returns completion options starting with "jav" (javascript, java)
+ * - Completion replaces from position 3 (after ```) to cursor position
+ */
 function languageIdentifierCompletion(context: CompletionContext) {
     const {state, pos} = context
     const line = state.doc.lineAt(pos)
     const lineStart = line.from
     const beforeCursor = state.doc.sliceString(lineStart, pos)
 
-    // 检查当前行是否以 ``` 开头，并捕获输入的语言标识符
+    // Check if current line starts with ``` and capture input language identifier
     const tripleBacktickMatch = /^```([^\s`]*)$/.exec(beforeCursor)
     if (tripleBacktickMatch) {
         const word = tripleBacktickMatch[1]
 
-        // 返回匹配的语言列表
+        // Return matching language list
         return {
-            from: lineStart + 3, // 光标在 ``` 之后的位置
+            from: lineStart + 3, // Cursor position after ```
             to: pos,
             options: languageNames.filter(lang => lang.label.startsWith(word)),
-            validFor: /^([^\s`]*)$/ // 当输入或删除字符时保持自动补全
+            validFor: /^([^\s`]*)$/ // Keep autocompletion when typing or deleting characters
         }
     }
 
     return null
 }
 
-// 创建自动补全扩展
+/**
+ * CodeMirror extension for language identifier autocompletion
+ *
+ * This extension integrates with CodeMirror's autocompletion system to provide
+ * intelligent language suggestions when users are typing language identifiers
+ * in fenced code blocks.
+ *
+ * @example
+ * ```typescript
+ * // Include in CodeMirror extensions
+ * const extensions = [
+ *   languageIdentifierAutocomplete,
+ *   // ... other extensions
+ * ]
+ * ```
+ */
 export const languageIdentifierAutocomplete = autocompletion({
     override: [languageIdentifierCompletion]
 })

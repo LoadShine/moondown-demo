@@ -27,7 +27,7 @@ export function handleKeyDown(view: EditorView, event: KeyboardEvent): boolean {
 
     switch (event.key) {
         case "ArrowDown":
-            // 如果filteredCommands.title为divider，则跳过并选中更下一个；否则，则选中下一个
+            // Skip divider commands and select the next available command
             { let nextIndex = (state.selectedIndex + 1) % filteredCommands.length
             while (filteredCommands[nextIndex].title === "divider") {
                 nextIndex = (nextIndex + 1) % filteredCommands.length
@@ -37,7 +37,7 @@ export function handleKeyDown(view: EditorView, event: KeyboardEvent): boolean {
             })
             return true }
         case "ArrowUp":
-            // 如果filteredCommands.title为divider，则跳过并选中更上一个；否则，则选中上一个
+            // Skip divider commands and select the previous available command
             { let prevIndex = (state.selectedIndex - 1 + filteredCommands.length) % filteredCommands.length
             while (filteredCommands[prevIndex].title === "divider") {
                 prevIndex = (prevIndex - 1 + filteredCommands.length) % filteredCommands.length

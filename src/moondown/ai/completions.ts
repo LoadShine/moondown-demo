@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import {glmApiKey, glmBaseURL} from "./constants.ts";
 import {Stream} from "openai/streaming";
 
-// 定义返回类型
+// Define return types
 type ChatCompletionResponse = OpenAI.Chat.Completions.ChatCompletion;
 type ChatCompletionStreamResponse = Stream<OpenAI.Chat.Completions.ChatCompletionChunk>;
 
@@ -13,7 +13,7 @@ const openai = new OpenAI({
     dangerouslyAllowBrowser: true,
 });
 
-// 普通聊天完成方法
+// Regular chat completion method
 export const chatCompletion = async (
     systemPrompt: string,
     userPrompt: string,
@@ -38,7 +38,7 @@ export const chatCompletion = async (
     );
 };
 
-// 流式聊天完成方法
+// Streaming chat completion method
 export const chatCompletionStream = async (
     systemPrompt: string,
     userPrompt: string,

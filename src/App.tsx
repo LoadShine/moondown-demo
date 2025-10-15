@@ -44,14 +44,14 @@ function App() {
     const [editorContent, setEditorContent] = useState('');
     const [newContent, setNewContent] = useState('## Hello from React!\n\nThis content was set by clicking the button.');
     const [isSyntaxHiding, setIsSyntaxHiding] = useState(true);
-    const [theme, setTheme] = useState<'light' | 'dark'>('light'); // 新增: 控制主题的 state
+    const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
-    // 使用 useCallback 确保 onReady 函数引用稳定
+    // Use useCallback to ensure onReady function reference is stable
     const handleEditorReady = useCallback((instance: Moondown) => {
         setEditorInstance(instance);
     }, []);
 
-    // 监听主题变化，更新编辑器和页面
+    // Listen for theme changes and update editor and page
     useEffect(() => {
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -96,7 +96,7 @@ function App() {
 
             <main className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
                 <div className="flex items-center justify-end mb-4 space-x-4">
-                    {/* 语法隐藏开关 */}
+                    {/* Syntax hiding toggle */}
                     <div className="flex items-center">
                         <label htmlFor="syntax-toggle" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                             Hide Markdown Syntax
@@ -110,7 +110,7 @@ function App() {
                         />
                     </div>
 
-                    {/* 主题切换开关 */}
+                    {/* Theme toggle switch */}
                     <div className="flex items-center">
                         <label htmlFor="theme-toggle" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                             Dark Mode

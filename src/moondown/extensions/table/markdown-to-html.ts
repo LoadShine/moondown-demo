@@ -77,7 +77,7 @@ function nodeToHTML (node: ASTNode|ASTNode[], indent: number = 0): string {
         const rows: string[] = []
         let maxCells = 0
 
-        // 首先计算最大列数
+        // First calculate the maximum number of columns
         for (const row of node.rows) {
             maxCells = Math.max(maxCells, row.cells.length)
         }
@@ -88,7 +88,7 @@ function nodeToHTML (node: ASTNode|ASTNode[], indent: number = 0): string {
                 if (i < row.cells.length) {
                     cells.push(nodeToHTML(row.cells[i].children, indent))
                 } else {
-                    cells.push('') // 为缺少的单元格添加空内容
+                    cells.push('') // Add empty content for missing cells
                 }
             }
             const tag = row.isHeaderOrFooter ? 'th' : 'td'

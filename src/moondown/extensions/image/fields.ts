@@ -3,7 +3,7 @@ import {StateField} from "@codemirror/state";
 import {Decoration, type DecorationSet, EditorView, WidgetType} from "@codemirror/view";
 import {imageLoadedEffect, type ImageSizes, updateImagePlaceholder} from "./types.ts";
 
-// 图片大小状态字段
+// Image size state field
 export const imageSizeField = StateField.define<ImageSizes>({
     create: () => ({}),
     update(sizes, tr) {
@@ -17,7 +17,7 @@ export const imageSizeField = StateField.define<ImageSizes>({
     }
 })
 
-// 占位符状态字段
+// Placeholder state field
 export const placeholderField = StateField.define<DecorationSet>({
     create: () => Decoration.none,
     update(decorations, tr) {

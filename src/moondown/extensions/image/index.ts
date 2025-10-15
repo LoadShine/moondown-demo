@@ -30,32 +30,32 @@ export function imageExtension(): Extension {
             const lineContent = line.text;
             let isImageLine = false;
 
-            // 判断lineContent.trim()是不是图片的markdown语法，使用完备的正则表达式匹配
+            // Check if lineContent.trim() is image markdown syntax, using complete regex matching
             const imageReg = /^!\[([^\]]*)\]\(([^)]+)\)$/;
             if (imageReg.test(lineContent.trim())) {
                 isImageLine = true;
             }
 
-            // 检查是否在图片行的开头输入
+            // Check if input is at the beginning of image line
             if (from === line.from && isImageLine) {
-                // 在图片前插入新行
+                // Insert new line before image
                 view.dispatch({
                     changes: [{from: line.from, insert: '\n'}],
                     selection: EditorSelection.cursor(line.from),
                     scrollIntoView: true
                 });
 
-                // 在新行中插入文本
+                // Insert text in new line
                 view.dispatch({
                     changes: [{from: line.from, insert: text}],
                     selection: EditorSelection.cursor(line.from + text.length),
                     scrollIntoView: true
                 });
 
-                return true; // 表示我们已经处理了这个输入
+                return true; // Indicate we have handled this input
             }
 
-            return false; // 让 CodeMirror 处理其他情况
+            return false; // Let CodeMirror handle other cases
         })
     ]
 }

@@ -140,7 +140,7 @@ export function toggleInlineStyle(view: EditorView, mark: string): boolean {
     let match;
     let found = false;
 
-    // 检查是否是加粗转斜体或加粗斜体转加粗的特殊情况
+    // Check for special case of bold to italic or bold-italic to bold conversion
     if (mark === '*') {
         const boldOrBoldItalicRegex = /(\*{2,3})([^*]+)\1/g;
         while ((match = boldOrBoldItalicRegex.exec(textToCheck)) !== null) {
@@ -149,13 +149,13 @@ export function toggleInlineStyle(view: EditorView, mark: string): boolean {
             if (matchStart <= from && to <= matchEnd) {
                 const existingMarkers = match[1];
                 if (existingMarkers === '**') {
-                    // 加粗转加粗斜体
+                    // Convert bold to bold-italic
                     changes.push(
                         {from: matchStart, to: matchStart + 2, insert: '***'},
                         {from: matchEnd - 2, to: matchEnd, insert: '***'}
                     );
                 } else if (existingMarkers === '***') {
-                    // 加粗斜体转加粗
+                    // Convert bold-italic to bold
                     changes.push(
                         {from: matchStart, to: matchStart + 3, insert: '**'},
                         {from: matchEnd - 3, to: matchEnd, insert: '**'}
@@ -265,7 +265,7 @@ export function isInlineStyleActive(state: EditorState, marker: string): boolean
 
     const escapedMarker = escapeRegExp(marker);
 
-    // 使用更精确的正则表达式来匹配标记
+    // Use more precise regex pattern to match markers
     const regex = new RegExp(`(?<!\\${marker[0]})${escapedMarker}([^${escapedMarker}]+)${escapedMarker}(?!\\${marker[0]})`, 'g');
 
     let match;
@@ -278,7 +278,7 @@ export function isInlineStyleActive(state: EditorState, marker: string): boolean
         }
     }
 
-    // 处理加粗斜体的情况
+    // Handle bold-italic cases
     if (marker === '**' || marker === '*') {
         const boldItalicRegex = /\*{3}([^*]+)\*{3}/g;
         while ((match = boldItalicRegex.exec(textToCheck)) !== null) {

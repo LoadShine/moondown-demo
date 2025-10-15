@@ -1,4 +1,19 @@
 // src/moondown/extensions/table/build-pipe.ts
+
+/**
+ * Pipe table builder for markdown table generation
+ *
+ * This module provides functionality to convert table AST (Abstract Syntax Tree)
+ * data into properly formatted markdown pipe tables. It handles column alignment,
+ * cell padding, and delimiter row generation to create standard-compliant
+ * markdown tables.
+ *
+ * Key features:
+ * - Calculates optimal column widths based on content
+ * - Applies text alignment (left, center, right) to cells
+ * - Generates proper delimiter rows with alignment indicators
+ * - Creates standard pipe table format with borders
+ */
 import calculateColSizes from './calculate-col-sizes.ts'
 import type { ColAlignment } from './types.ts'
 

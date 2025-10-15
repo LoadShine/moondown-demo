@@ -86,7 +86,7 @@ export function getListInfo(state: EditorState, pos: number) {
     const line = state.doc.lineAt(pos);
     const lineText = line.text;
 
-    // 检查有序列表
+    // Check for ordered list
     const orderedMatch = lineText.match(/^(\s*)(\d+(?:\.\d+)*)\.\s/);
     if (orderedMatch) {
         return {
@@ -98,7 +98,7 @@ export function getListInfo(state: EditorState, pos: number) {
         };
     }
 
-    // 检查无序列表
+    // Check for unordered list
     const unorderedMatch = lineText.match(/^(\s*)([-*+])\s/);
     if (unorderedMatch) {
         return {

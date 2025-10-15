@@ -1,4 +1,15 @@
 // src/moondown/extensions/table/types.ts
+
+/**
+ * TypeScript type definitions for table editor functionality
+ *
+ * This module exports all type definitions used throughout the table editor
+ * system, including column alignment types, parsed table structures, and
+ * configuration options for the TableEditor class.
+ *
+ * These types ensure type safety across the table editing features and provide
+ * clear interfaces for table data manipulation and editor configuration.
+ */
 import type TableEditor from './table-editor.ts'
 
 export type ColAlignment = 'center'|'left'|'right'

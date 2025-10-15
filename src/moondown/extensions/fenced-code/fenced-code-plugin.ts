@@ -8,7 +8,7 @@ import {
     hideLineDecoration
 } from "./decorations.ts";
 
-// 定义插件，处理代码块的背景和样式
+// Define plugin to handle code block backgrounds and styles
 export const fencedCodeBackgroundPlugin = StateField.define({
     create(_state: EditorState) {
         return Decoration.none;
@@ -28,7 +28,7 @@ export const fencedCodeBackgroundPlugin = StateField.define({
                     const startLine = state.doc.lineAt(start)
                     const endLine = state.doc.lineAt(end)
 
-                    // 为所有行添加背景色
+                    // Add background color for all lines
                     let pos = startLine.from
                     while (pos <= endLine.from) {
                         const line = state.doc.lineAt(pos)
@@ -41,7 +41,7 @@ export const fencedCodeBackgroundPlugin = StateField.define({
                     }
 
                     if (!isSelected && startLine.number !== endLine.number) {
-                        // 光标不在代码块中且代码块不止一行,隐藏第一行和最后一行
+                        // Cursor not in code block and code block has more than one line, hide first and last lines
                         ranges.push({
                             from: startLine.from,
                             to: startLine.from,
@@ -57,13 +57,13 @@ export const fencedCodeBackgroundPlugin = StateField.define({
             }
         })
 
-        // 对 ranges 按照 from 位置排序
+        // Sort ranges by from position
         ranges.sort((a, b) => {
             const fromDiff = a.from - b.from
             if (fromDiff !== 0) {
                 return fromDiff
             }
-            // 如果 from 位置相同, 按照装饰类型排序
+            // If from position is the same, sort by decoration type
             if (a.decoration === fencedCodeDecoration) {
                 return -1
             }
@@ -73,7 +73,7 @@ export const fencedCodeBackgroundPlugin = StateField.define({
             return 0
         })
 
-        // 创建新的 RangeSetBuilder 并按照排序后的 ranges 添加装饰
+        // Create new RangeSetBuilder and add decorations in sorted order
         const builder = new RangeSetBuilder<Decoration>()
         for (const {from, to, decoration} of ranges) {
             builder.add(from, to, decoration)
@@ -84,31 +84,31 @@ export const fencedCodeBackgroundPlugin = StateField.define({
     provide: (f) => EditorView.decorations.from(f),
 })
 
-// 创建输入处理器，当用户输入 ``` 时，自动添加结尾的 ```
+// Create input handler, when user types ```, automatically add closing ```
 export const codeBlockInputHandler = EditorView.inputHandler.of((view, _from, _to, text) => {
     if (text === "`") {
         const state = view.state
         const selection = state.selection.main
         const beforeCursor = state.doc.sliceString(Math.max(0, selection.from - 2), selection.from)
 
-        // 检查前两个字符是否也是反引号，构成了三个反引号
+        // Check if previous two characters are also backticks, forming three backticks
         if (beforeCursor === "``") {
-            // 插入一个换行符、空行和结尾的 ```
+            // Insert a newline, empty line and closing ```
             const insertText = "\n\n```"
-            // 计算光标新位置，在第一个 ``` 后
+            // Calculate new cursor position, after first ```
             const cursorPos = selection.from + 1
 
-            // 执行替换
+            // Execute replacement
             view.dispatch({
                 changes: {from: selection.from - 2, to: selection.from, insert: "```" + insertText},
                 selection: {anchor: cursorPos}
             })
 
-            // 阻止默认输入处理
+            // Prevent default input handling
             return true
         }
     }
 
-    // 使用默认的输入处理器
+    // Use default input handler
     return false
 })

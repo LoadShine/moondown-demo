@@ -17,7 +17,7 @@ export const slashCommandState = StateField.define<{
             if (e.is(toggleSlashCommand)) {
                 return {active: e.value, filterText: "", pos: tr.selection?.main.from ?? 0, selectedIndex: 0}
             }
-            // 添加对选中索引更新的处理
+            // Add handling for selected index updates
             if (e.is(updateSelectedIndex)) {
                 return {...value, selectedIndex: e.value}
             }

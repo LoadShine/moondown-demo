@@ -3,7 +3,7 @@ import {type Extension} from "@codemirror/state";
 import {codeBlockInputHandler, fencedCodeBackgroundPlugin} from "./fenced-code-plugin.ts";
 import {languageIdentifierAutocomplete} from "./language-autocomplete.ts";
 
-// 导出插件
+// Export plugins
 export function fencedCode(): Extension{
     return [
         fencedCodeBackgroundPlugin,

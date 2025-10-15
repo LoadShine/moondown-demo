@@ -1,4 +1,19 @@
 // src/moondown/extensions/table/parse-table-node.ts
+
+/**
+ * Table node parser for markdown table AST conversion
+ *
+ * This module provides functionality to parse Lezer SyntaxNodes representing
+ * markdown tables into a structured AST (Abstract Syntax Tree) format. It handles
+ * both pipe tables and grid tables, extracting cell contents, determining column
+ * alignments, and organizing table structure for further processing.
+ *
+ * Key features:
+ * - Extracts table header and row data from syntax nodes
+ * - Determines column alignment from delimiter rows
+ * - Handles empty cells and table delimiters
+ * - Creates structured AST representation with position information
+ */
 import {type SyntaxNode} from '@lezer/common'
 import type {Table, TableRow, TableCell} from './table-ast.ts'
 import {genericTextNode} from './generic-text-node.ts'

@@ -1,6 +1,6 @@
 // src/components/MoondownWrapper.tsx
 import React, { useRef, useEffect } from 'react';
-import Moondown from '../moondown/moondown'; // 直接从我们创建的目录导入
+import Moondown from '../moondown/moondown'; // Import directly from our created directory
 
 interface MoondownWrapperProps {
     initialValue?: string;
@@ -15,16 +15,16 @@ const MoondownWrapper: React.FC<MoondownWrapperProps> = ({ initialValue = '', on
         let editorInstance: Moondown | null = null;
 
         if (containerRef.current && !isInitialized.current) {
-            // 初始化 Moondown 编辑器
+            // Initialize Moondown editor
             editorInstance = new Moondown(containerRef.current, initialValue);
 
-            // 通过回调将实例传递给父组件
+            // Pass instance to parent component via callback
             onReady(editorInstance);
 
             isInitialized.current = true;
         }
 
-        // 组件卸载时销毁编辑器实例，防止内存泄漏
+        // Destroy editor instance when component unmounts to prevent memory leaks
         return () => {
             if (editorInstance) {
                 editorInstance.destroy();
@@ -32,7 +32,7 @@ const MoondownWrapper: React.FC<MoondownWrapperProps> = ({ initialValue = '', on
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // 空依赖数组确保 effect 只运行一次
+    }, []); // Empty dependency array ensures effect runs only once
 
     return <div ref={containerRef} className="border rounded-md shadow-sm min-h-[300px] w-full" />;
 };

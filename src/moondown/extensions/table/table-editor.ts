@@ -205,7 +205,7 @@ export default class TableEditor {
 
         // Inject the CSS necessary to style the table and buttons.
         this._injectCSS()
-    } // END CONSTRUCTOR
+    }
 
     private _showRowActions(): void {
         if (this._tippyInstance) {
@@ -233,9 +233,9 @@ export default class TableEditor {
         container.style.padding = '5px';
 
         const actions = [
-            { icon: 'arrow-up-to-line', title: '在上方插入一列', action: () => this.prependRow() },
-            { icon: 'arrow-down-to-line', title: '在下方插入一列', action: () => this.appendRow() },
-            { icon: 'trash-2', title: '删除本列', action: () => this.pluckRow() },
+            { icon: 'arrow-up-to-line', title: 'Insert row above', action: () => this.prependRow() },
+            { icon: 'arrow-down-to-line', title: 'Insert row below', action: () => this.appendRow() },
+            { icon: 'trash-2', title: 'Delete this row', action: () => this.pluckRow() },
         ];
 
         actions.forEach(({ icon, title, action }) => {
@@ -290,7 +290,7 @@ export default class TableEditor {
         const actions = [
             {
                 icon: 'arrow-left-to-line',
-                title: '在左侧插入一列',
+                title: 'Insert column to the left',
                 action: () => {
                     this.prependCol();
                     this._tippyInstance?.hide();
@@ -299,7 +299,7 @@ export default class TableEditor {
             },
             {
                 icon: 'arrow-right-to-line',
-                title: '在右侧插入一列',
+                title: 'Insert column to the right',
                 action: () => {
                     this.appendCol();
                     this._tippyInstance?.hide();
@@ -308,7 +308,7 @@ export default class TableEditor {
             },
             {
                 icon: 'trash-2',
-                title: '删除本列',
+                title: 'Delete this column',
                 action: () => {
                     this.pluckCol();
                     this._tippyInstance?.hide();
@@ -317,7 +317,7 @@ export default class TableEditor {
             },
             {
                 icon: 'align-center',
-                title: '对齐方式',
+                title: 'Alignment',
                 action: (event: MouseEvent) => this._showAlignmentOptions(event.currentTarget as HTMLElement) },
         ];
 
@@ -347,21 +347,21 @@ export default class TableEditor {
         const alignments = [
             {
                 icon: 'align-left',
-                title: '左对齐',
+                title: 'Align left',
                 action: () => {
                     this.changeColAlignment('left');
                 }
             },
             {
                 icon: 'align-center',
-                title: '居中对齐',
+                title: 'Align center',
                 action: () => {
                     this.changeColAlignment('center');
                 }
             },
             {
                 icon: 'align-right',
-                title: '右对齐',
+                title: 'Align right',
                 action: () => {
                     this.changeColAlignment('right');
                 }
