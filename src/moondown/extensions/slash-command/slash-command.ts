@@ -1,173 +1,230 @@
 // src/moondown/extensions/slash-command/slash-command.ts
-import {EditorView, ViewPlugin, ViewUpdate} from "@codemirror/view"
-import {createIcons, icons} from 'lucide'
-import {slashCommandState, toggleSlashCommand} from "./fields.ts";
-import {type SlashCommandOption, slashCommands} from "./commands.ts";
+import { EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
+import { createIcons, icons } from 'lucide';
+import { slashCommandState, toggleSlashCommand } from "./fields";
+import { type SlashCommandOption, slashCommands } from "./commands";
+import { CSS_CLASSES, ICON_SIZES, TIMING } from "../../core/constants";
+import { createElement, createIconElement, debounce, scrollIntoView as scrollElementIntoView } from "../../core/utils/dom-utils";
+
+/**
+ * SlashCommandPlugin - Implements the slash command menu functionality
+ * Provides quick insertion of markdown elements via "/" trigger
+ */
 
 export const slashCommandPlugin = ViewPlugin.fromClass(class {
-    menu: HTMLElement
-    debounceTimer: number | null = null
-    currentAbortController: AbortController | null = null
+    private menu: HTMLElement;
+    private debounceTimer: number | null = null;
+    private currentAbortController: AbortController | null = null;
+    private debouncedUpdate: (update: ViewUpdate) => void;
 
     constructor(view: EditorView) {
-        this.menu = document.createElement("div")
-        this.menu.className = "cm-slash-command-menu"
-        view.dom.appendChild(this.menu)
+        this.menu = createElement('div', CSS_CLASSES.SLASH_COMMAND_MENU);
+        view.dom.appendChild(this.menu);
+        
+        // Create debounced update function
+        this.debouncedUpdate = debounce(
+            (update: ViewUpdate) => this.updateMenu(update),
+            TIMING.DEBOUNCE_DELAY
+        );
 
         // Add click event listener to the editor
         view.dom.addEventListener('click', () => {
-            this.abortAIContinuation()
-        })
+            this.abortAIContinuation();
+        });
 
+        // Close menu on outside clicks
         document.addEventListener('click', (e) => {
             if (!this.menu.contains(e.target as Node) && !view.dom.contains(e.target as Node)) {
                 view.dispatch({
                     effects: toggleSlashCommand.of(false)
-                })
-                this.abortAIContinuation()
+                });
+                this.abortAIContinuation();
             }
-        })
+        });
     }
 
-    update(update: ViewUpdate) {
-        if (this.debounceTimer) {
-            clearTimeout(this.debounceTimer)
-        }
-
-        this.debounceTimer = setTimeout(() => {
-            this.updateMenu(update)
-        }, 10) as unknown as number
+    update(update: ViewUpdate): void {
+        this.debouncedUpdate(update);
     }
 
-    updateMenu(update: ViewUpdate) {
-        const state = update.state.field(slashCommandState)
+    /**
+     * Updates the menu position and content
+     */
+    private updateMenu(update: ViewUpdate): void {
+        const state = update.state.field(slashCommandState);
+        
         if (!state.active) {
-            this.menu.style.display = "none"
-            return
+            this.hide();
+            return;
         }
 
-        this.menu.style.display = "block"
+        this.show();
 
         requestAnimationFrame(() => {
-            const pos = update.view.coordsAtPos(state.pos)
+            const pos = update.view.coordsAtPos(state.pos);
             if (pos) {
-                const editorRect = update.view.dom.getBoundingClientRect()
-                const menuRect = this.menu.getBoundingClientRect()
+                const editorRect = update.view.dom.getBoundingClientRect();
+                const menuRect = this.menu.getBoundingClientRect();
 
-                // 检查菜单是否超出编辑器底部
+                // Position menu above or below cursor based on available space
                 if (pos.top + menuRect.height > editorRect.bottom) {
-                    // 如果超出，将菜单位置调整到光标上方
-                    this.menu.style.top = `${pos.top - editorRect.top - menuRect.height}px`
+                    // Position above cursor
+                    this.menu.style.top = `${pos.top - editorRect.top - menuRect.height}px`;
                 } else {
-                    // 如果没有超出，将菜单位置设置在光标下方
-                    this.menu.style.top = `${pos.top - editorRect.top + 20}px`
+                    // Position below cursor
+                    this.menu.style.top = `${pos.top - editorRect.top + 20}px`;
                 }
 
-                this.menu.style.left = `${pos.left - editorRect.left}px`
+                this.menu.style.left = `${pos.left - editorRect.left}px`;
             }
-        })
+        });
 
-        const filteredCommands = slashCommands.filter(cmd =>
-            cmd.title.toLowerCase().includes(state.filterText.toLowerCase())
-        )
+        const filteredCommands = this.filterCommands(state.filterText);
 
+        this.renderCommands(filteredCommands, state.selectedIndex, update.view, state.pos);
+    }
+
+    /**
+     * Filters commands based on search text
+     */
+    private filterCommands(filterText: string): SlashCommandOption[] {
+        return slashCommands.filter(cmd =>
+            cmd.title.toLowerCase().includes(filterText.toLowerCase())
+        );
+    }
+
+    /**
+     * Renders the command list
+     */
+    private renderCommands(
+        commands: SlashCommandOption[],
+        selectedIndex: number,
+        view: EditorView,
+        pos: number
+    ): void {
         requestAnimationFrame(() => {
-            const fragment = document.createDocumentFragment()
+            const fragment = document.createDocumentFragment();
 
-            filteredCommands.forEach((cmd, index) => {
+            commands.forEach((cmd, index) => {
                 if (cmd.title === "divider") {
-                    const divider = document.createElement("hr")
-                    divider.className = "cm-slash-command-divider"
-                    fragment.appendChild(divider)
-                    return
+                    const divider = createElement("hr", CSS_CLASSES.SLASH_COMMAND_DIVIDER);
+                    fragment.appendChild(divider);
+                    return;
                 }
 
-                const item = document.createElement("div")
-                item.className = `cm-slash-command-item ${index === state.selectedIndex ? 'selected' : ''}`
+                const isSelected = index === selectedIndex;
+                const itemClass = `${CSS_CLASSES.SLASH_COMMAND_ITEM} ${
+                    isSelected ? CSS_CLASSES.SLASH_COMMAND_SELECTED : ''
+                }`;
+                const item = createElement("div", itemClass);
 
-                const icon = document.createElement("span")
-                icon.className = "cm-slash-command-icon"
-                icon.innerHTML = `<i data-lucide="${cmd.icon}"></i>`
+                const icon = createIconElement(cmd.icon, "cm-slash-command-icon");
+                const title = createElement("span", "cm-slash-command-title");
+                title.textContent = cmd.title;
 
-                const title = document.createElement("span")
-                title.className = "cm-slash-command-title"
-                title.textContent = cmd.title
-
-                item.appendChild(icon)
-                item.appendChild(title)
+                item.appendChild(icon);
+                item.appendChild(title);
 
                 item.addEventListener("mousedown", (e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    this.executeCommand(update.view, cmd, state.pos)
-                })
-                fragment.appendChild(item)
-            })
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.executeCommand(view, cmd, pos);
+                });
+                
+                fragment.appendChild(item);
+            });
 
-            this.menu.innerHTML = ''
-            this.menu.appendChild(fragment)
+            this.menu.innerHTML = '';
+            this.menu.appendChild(fragment);
 
-            // 创建 Lucide 图标
+            // Initialize Lucide icons
             createIcons({
                 icons,
-                attrs: {
-                    width: '16',
-                    height: '16'
-                },
-            })
+                attrs: ICON_SIZES.MEDIUM,
+            });
 
-            // 确保选中的项目在可视区域内
-            this.scrollSelectedIntoView()
-        })
+            // Ensure selected item is visible
+            this.scrollSelectedIntoView();
+        });
     }
 
-    scrollSelectedIntoView() {
-        const selectedItem = this.menu.querySelector('.cm-slash-command-item.selected') as HTMLElement
+    /**
+     * Scrolls the selected item into view
+     */
+    private scrollSelectedIntoView(): void {
+        const selectedItem = this.menu.querySelector(
+            `.${CSS_CLASSES.SLASH_COMMAND_ITEM}.${CSS_CLASSES.SLASH_COMMAND_SELECTED}`
+        ) as HTMLElement;
+        
         if (selectedItem) {
-            const menuRect = this.menu.getBoundingClientRect()
-            const selectedRect = selectedItem.getBoundingClientRect()
-
-            if (selectedRect.top < menuRect.top) {
-                this.menu.scrollTop = selectedItem.offsetTop
-            } else if (selectedRect.bottom > menuRect.bottom) {
-                this.menu.scrollTop = selectedItem.offsetTop + selectedItem.offsetHeight - this.menu.clientHeight
-            }
+            scrollElementIntoView(selectedItem, this.menu);
         }
     }
 
-    executeCommand(view: EditorView, cmd: SlashCommandOption, pos: number) {
+    /**
+     * Executes a slash command
+     */
+    private executeCommand(view: EditorView, cmd: SlashCommandOption, pos: number): void {
         view.dispatch({
-            changes: {from: pos, to: view.state.selection.main.from, insert: ""},
+            changes: { from: pos, to: view.state.selection.main.from, insert: "" },
             effects: toggleSlashCommand.of(false)
-        })
-        const result = cmd.execute(view)
+        });
+        
+        const result = cmd.execute(view);
         if (result instanceof Promise) {
             result.then(controller => {
                 if (controller instanceof AbortController) {
-                    this.currentAbortController = controller
+                    this.currentAbortController = controller;
                 }
-            })
+            });
         }
-        view.focus()
+        
+        view.focus();
     }
 
-    setCurrentAbortController(controller: AbortController) {
-        this.currentAbortController = controller
+    /**
+     * Shows the menu
+     */
+    private show(): void {
+        this.menu.style.display = "block";
     }
 
-    clearCurrentAbortController() {
-        this.currentAbortController = null
+    /**
+     * Hides the menu
+     */
+    private hide(): void {
+        this.menu.style.display = "none";
     }
 
-    abortAIContinuation() {
+    /**
+     * Sets the current abort controller for AI operations
+     */
+    setCurrentAbortController(controller: AbortController): void {
+        this.currentAbortController = controller;
+    }
+
+    /**
+     * Clears the current abort controller
+     */
+    clearCurrentAbortController(): void {
+        this.currentAbortController = null;
+    }
+
+    /**
+     * Aborts any ongoing AI continuation
+     */
+    abortAIContinuation(): void {
         if (this.currentAbortController) {
-            this.currentAbortController.abort()
-            this.currentAbortController = null
+            this.currentAbortController.abort();
+            this.currentAbortController = null;
         }
     }
 
-    destroy() {
-        this.menu.remove()
-        this.abortAIContinuation()
+    /**
+     * Cleanup on plugin destroy
+     */
+    destroy(): void {
+        this.menu.remove();
+        this.abortAIContinuation();
     }
 })

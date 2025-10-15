@@ -1,9 +1,14 @@
 // src/moondown/extensions/correct-list/list-keymap.ts
 import { EditorView, type KeyBinding } from "@codemirror/view";
 import { indentLess, indentMore, deleteCharBackward, deleteCharForward } from "@codemirror/commands";
-import { updateListEffect } from "./update-list-effect.ts";
-import { getListInfo, generateListItem } from "./list-functions.ts";
+import { updateListEffect } from "./update-list-effect";
+import { getListInfo, generateListItem } from "./list-functions";
+import { LIST_INDENT, LIST_UPDATE_DELAY } from "./constants";
 
+/**
+ * Keymap for list editing functionality
+ * Handles Tab, Shift-Tab, Enter, and Backspace/Delete keys
+ */
 export const listKeymap: KeyBinding[] = [
     {
         key: 'Tab',
@@ -14,15 +19,15 @@ export const listKeymap: KeyBinding[] = [
             const listInfo = getListInfo(state, pos);
 
             if (listInfo) {
-                // 缩进列表项
+                // Indent list item
                 indentMore(view);
 
-                // 延迟更新列表编号，确保缩进操作完成
+                // Defer list number update to ensure indent operation completes
                 setTimeout(() => {
                     view.dispatch({
                         effects: updateListEffect.of({ from: 0, to: state.doc.length }),
                     });
-                }, 0);
+                }, LIST_UPDATE_DELAY);
 
                 return true;
             }
@@ -37,16 +42,16 @@ export const listKeymap: KeyBinding[] = [
             const pos = selection.main.head;
             const listInfo = getListInfo(state, pos);
 
-            if (listInfo && listInfo.indent > 0) {
-                // 减少缩进
+            if (listInfo && listInfo.indent > LIST_INDENT.MIN) {
+                // Decrease indentation
                 indentLess(view);
 
-                // 延迟更新列表编号
+                // Defer list number update
                 setTimeout(() => {
                     view.dispatch({
                         effects: updateListEffect.of({ from: 0, to: state.doc.length }),
                     });
-                }, 0);
+                }, LIST_UPDATE_DELAY);
 
                 return true;
             }
@@ -65,9 +70,9 @@ export const listKeymap: KeyBinding[] = [
                 const line = state.doc.lineAt(pos);
 
                 if (listInfo.content.trim() === '') {
-                    // 当前列表项为空
-                    if (listInfo.indent === 0) {
-                        // 已经是最顶级，退出列表
+                    // Current list item is empty
+                    if (listInfo.indent === LIST_INDENT.MIN) {
+                        // Already at top level, exit list
                         const transaction = state.update({
                             changes: {
                                 from: line.from,
@@ -78,8 +83,8 @@ export const listKeymap: KeyBinding[] = [
                         });
                         view.dispatch(transaction);
                     } else {
-                        // 回退到上一级
-                        const newIndent = Math.max(0, listInfo.indent - 2);
+                        // Go back one indentation level
+                        const newIndent = Math.max(LIST_INDENT.MIN, listInfo.indent - LIST_INDENT.SIZE);
                         const newListItem = generateListItem(listInfo.type, newIndent);
 
                         const transaction = state.update({
@@ -92,15 +97,15 @@ export const listKeymap: KeyBinding[] = [
                         });
                         view.dispatch(transaction);
 
-                        // 更新列表编号
+                        // Update list numbering
                         setTimeout(() => {
                             view.dispatch({
                                 effects: updateListEffect.of({ from: 0, to: state.doc.length }),
                             });
-                        }, 0);
+                        }, LIST_UPDATE_DELAY);
                     }
                 } else {
-                    // 创建新的列表项
+                    // Create new list item
                     const newListItem = generateListItem(listInfo.type, listInfo.indent);
                     const insertText = `\n${newListItem}`;
 
@@ -114,12 +119,12 @@ export const listKeymap: KeyBinding[] = [
                     });
                     view.dispatch(transaction);
 
-                    // 更新列表编号
+                    // Update list numbering
                     setTimeout(() => {
                         view.dispatch({
                             effects: updateListEffect.of({ from: 0, to: state.doc.length }),
                         });
-                    }, 0);
+                    }, LIST_UPDATE_DELAY);
                 }
 
                 return true;
@@ -135,28 +140,28 @@ export const listKeymap: KeyBinding[] = [
             const { selection } = state;
             const pos = selection.main.head;
 
-            // 检查当前位置是否在列表中，或者删除操作可能影响列表
+            // Check if current position is in a list or delete operation may affect list
             const currentLine = state.doc.lineAt(pos);
             const currentListInfo = getListInfo(state, pos);
 
-            // 检查上一行是否是列表项（用于处理删除换行符的情况）
+            // Check if previous line is a list item (for handling newline deletion)
             let previousLineListInfo = null;
             if (currentLine.number > 1) {
                 const previousLine = state.doc.line(currentLine.number - 1);
                 previousLineListInfo = getListInfo(state, previousLine.from);
             }
 
-            // 如果当前行或上一行是列表项，需要在删除后更新列表编号
+            // If current or previous line is a list item, update list numbers after deletion
             if (currentListInfo || previousLineListInfo) {
-                // 执行默认的删除操作
+                // Execute default delete operation
                 const result = deleteCharBackward(view);
 
-                // 延迟更新列表编号，确保删除操作完成
+                // Defer list number update to ensure delete operation completes
                 setTimeout(() => {
                     view.dispatch({
                         effects: updateListEffect.of({ from: 0, to: view.state.doc.length }),
                     });
-                }, 0);
+                }, LIST_UPDATE_DELAY);
 
                 return result;
             }
@@ -171,28 +176,28 @@ export const listKeymap: KeyBinding[] = [
             const { selection } = state;
             const pos = selection.main.head;
 
-            // 检查当前位置是否在列表中，或者删除操作可能影响列表
+            // Check if current position is in a list or delete operation may affect list
             const currentLine = state.doc.lineAt(pos);
             const currentListInfo = getListInfo(state, pos);
 
-            // 检查下一行是否是列表项（用于处理删除换行符的情况）
+            // Check if next line is a list item (for handling newline deletion)
             let nextLineListInfo = null;
             if (currentLine.number < state.doc.lines) {
                 const nextLine = state.doc.line(currentLine.number + 1);
                 nextLineListInfo = getListInfo(state, nextLine.from);
             }
 
-            // 如果当前行或下一行是列表项，需要在删除后更新列表编号
+            // If current or next line is a list item, update list numbers after deletion
             if (currentListInfo || nextLineListInfo) {
-                // 执行默认的删除操作
+                // Execute default delete operation
                 const result = deleteCharForward(view);
 
-                // 延迟更新列表编号，确保删除操作完成
+                // Defer list number update to ensure delete operation completes
                 setTimeout(() => {
                     view.dispatch({
                         effects: updateListEffect.of({ from: 0, to: view.state.doc.length }),
                     });
-                }, 0);
+                }, LIST_UPDATE_DELAY);
 
                 return result;
             }

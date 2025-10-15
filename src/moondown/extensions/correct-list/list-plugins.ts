@@ -1,39 +1,50 @@
 // src/moondown/extensions/correct-list/list-plugins.ts
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
-import { updateListEffect } from "./update-list-effect.ts";
-import { updateLists } from "./list-functions.ts";
+import { updateListEffect } from "./update-list-effect";
+import { updateLists } from "./list-functions";
 import { RangeSetBuilder } from "@codemirror/state";
 import { syntaxTree } from "@codemirror/language";
-import { BulletWidget } from "./bullet-widget.ts";
+import { BulletWidget } from "./bullet-widget";
+import { LIST_INDENT, LIST_PATTERNS } from "./constants";
 
+/**
+ * Maximum number of bullet styles to cycle through
+ */
+const BULLET_STYLE_COUNT = 3;
+
+/**
+ * Plugin to handle automatic list number updates
+ * Listens to document changes and updates list numbering when needed
+ */
 export const updateListPlugin = EditorView.updateListener.of((update) => {
-    // 检查是否有手动触发的updateListEffect
+    // Check if there's a manual update trigger
     let hasManualUpdate = false;
     for (const tr of update.transactions) {
         for (const e of tr.effects) {
             if (e.is(updateListEffect)) {
                 hasManualUpdate = true;
                 updateLists(update.view);
-                return; // 如果有手动更新，直接返回，不需要自动检测
+                return; // If manual update exists, return early
             }
         }
     }
 
-    // 如果没有手动触发的更新，但文档发生了变化，检查是否需要自动更新列表
+    // If no manual update but document changed, check if auto-update is needed
     if (!hasManualUpdate && update.docChanged) {
         let needsUpdate = false;
 
-        // 检查变化是否可能影响列表编号
+        // Check if changes might affect list numbering
         for (const tr of update.transactions) {
             tr.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
-                // 检查删除的内容是否包含列表标记
                 const deletedText = update.startState.doc.sliceString(fromA, toA);
                 const insertedText = inserted.toString();
 
-                // 检查是否涉及列表项（有序或无序）
+                /**
+                 * Check if text contains list markers
+                 */
                 const hasListMarker = (text: string) => {
-                    return /^\s*(\d+(?:\.\d+)*\.\s|[-*+]\s)/m.test(text) ||
-                        /\n\s*(\d+(?:\.\d+)*\.\s|[-*+]\s)/m.test(text);
+                    return LIST_PATTERNS.ANY.test(text) ||
+                        new RegExp('\n' + LIST_PATTERNS.ANY.source.slice(1)).test(text);
                 };
 
                 if (hasListMarker(deletedText) || hasListMarker(insertedText)) {
@@ -41,7 +52,7 @@ export const updateListPlugin = EditorView.updateListener.of((update) => {
                     return;
                 }
 
-                // 检查变化位置周围的行是否包含列表
+                // Check if lines around the change contain lists
                 const doc = update.state.doc;
                 try {
                     const fromLine = Math.max(1, doc.lineAt(Math.max(0, fromB - 1)).number - 1);
@@ -49,13 +60,13 @@ export const updateListPlugin = EditorView.updateListener.of((update) => {
 
                     for (let lineNum = fromLine; lineNum <= toLine; lineNum++) {
                         const line = doc.line(lineNum);
-                        if (/^\s*(\d+(?:\.\d+)*\.\s|[-*+]\s)/.test(line.text)) {
+                        if (LIST_PATTERNS.ANY.test(line.text)) {
                             needsUpdate = true;
                             return;
                         }
                     }
                 } catch (e) {
-                    // 如果访问行时出错，为安全起见触发更新
+                    // If error accessing lines, trigger update for safety
                     needsUpdate = true;
                 }
             });
@@ -69,6 +80,10 @@ export const updateListPlugin = EditorView.updateListener.of((update) => {
     }
 });
 
+/**
+ * Plugin to replace bullet markers with styled decorations
+ * Provides visual variety for different indentation levels
+ */
 export const bulletListPlugin = ViewPlugin.fromClass(class {
     decorations: DecorationSet;
 
@@ -97,13 +112,13 @@ export const bulletListPlugin = ViewPlugin.fromClass(class {
 
                         if (unorderedMatch) {
                             const indentation = unorderedMatch[1] || '';
-                            const indentLevel = Math.floor(indentation.length / 2);
-                            const levelClass = `cm-bullet-list-l${indentLevel % 3}`;
+                            const indentLevel = Math.floor(indentation.length / LIST_INDENT.SIZE);
+                            const levelClass = `cm-bullet-list-l${indentLevel % BULLET_STYLE_COUNT}`;
 
                             const bulletStart = line.from + (unorderedMatch.index || 0);
                             const bulletEnd = bulletStart + unorderedMatch[0].length;
 
-                            // 添加装饰器到数组中
+                            // Add widget decoration for custom bullet
                             decorations.push({
                                 from: bulletStart,
                                 to: bulletStart,
@@ -113,6 +128,7 @@ export const bulletListPlugin = ViewPlugin.fromClass(class {
                                 })
                             });
 
+                            // Hide original markdown bullet
                             decorations.push({
                                 from: bulletStart,
                                 to: bulletEnd,
@@ -124,10 +140,10 @@ export const bulletListPlugin = ViewPlugin.fromClass(class {
             });
         }
 
-        // 按位置排序装饰器
+        // Sort decorations by position
         decorations.sort((a, b) => {
             if (a.from !== b.from) return a.from - b.from;
-            // Widget 装饰器应该在 replace 装饰器之前
+            // Widget decorations should come before replace decorations
             const aIsWidget = a.decoration.spec.widget !== undefined;
             const bIsWidget = b.decoration.spec.widget !== undefined;
             if (aIsWidget && !bIsWidget) return -1;
@@ -135,7 +151,7 @@ export const bulletListPlugin = ViewPlugin.fromClass(class {
             return 0;
         });
 
-        // 添加到 builder
+        // Add to builder
         decorations.forEach(({ from, to, decoration }) => {
             builder.add(from, to, decoration);
         });

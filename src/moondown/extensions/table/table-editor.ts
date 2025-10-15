@@ -1,11 +1,10 @@
 // src/moondown/extensions/table/table-editor.ts
 import buildPipeTable from './build-pipe.ts'
-
 import computeCSS from './compute-css.ts'
 import type {ColAlignment, TableEditorOptions} from './types.ts'
-
 import {md2html} from './markdown-to-html.ts'
 import {selectElementContents} from "./select-in-element.ts";
+import { TABLE_SIZING, TABLE_CSS_CLASSES, TABLE_SYMBOLS } from './constants';
 import tippy, {type Instance as TippyInstance } from 'tippy.js';
 import {
     createIcons,
@@ -140,7 +139,7 @@ export default class TableEditor {
         this._ast = ast
         this._lastSeenTable = JSON.stringify(this._ast)
         this._colAlignment = alignments
-        this._edgeButtonSize = 30 // Size in pixels
+        this._edgeButtonSize = TABLE_SIZING.EDGE_BUTTON_SIZE
         this._isClean = true
 
         // Find the container element
@@ -157,18 +156,18 @@ export default class TableEditor {
         }
 
         const template = document.createElement('div')
-        template.classList.add('table-helper-operate-button')
+        template.classList.add(TABLE_CSS_CLASSES.OPERATE_BUTTON)
 
         this._addTopButton = template.cloneNode(true) as HTMLDivElement
-        this._addTopButton.classList.add('top')
-        this._addTopButton.innerHTML = '&#8943;';
+        this._addTopButton.classList.add(TABLE_CSS_CLASSES.TOP_BUTTON)
+        this._addTopButton.innerHTML = TABLE_SYMBOLS.HORIZONTAL_ELLIPSIS;
         this._addLeftButton = template.cloneNode(true) as HTMLDivElement
-        this._addLeftButton.classList.add('left')
-        this._addLeftButton.innerHTML = '&#8942;';
+        this._addLeftButton.classList.add(TABLE_CSS_CLASSES.LEFT_BUTTON)
+        this._addLeftButton.innerHTML = TABLE_SYMBOLS.VERTICAL_ELLIPSIS;
 
         // Create the Table element
         const table = document.createElement('table')
-        table.classList.add('table-helper')
+        table.classList.add(TABLE_CSS_CLASSES.HELPER)
         this._elem = table
 
         // Populate the inner contents initially

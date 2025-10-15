@@ -1,29 +1,37 @@
 // src/moondown/extensions/bubble-menu/bubble-menu.ts
-import {EditorView, ViewUpdate, type PluginValue} from "@codemirror/view"
-import {EditorState} from "@codemirror/state"
-import * as icons from 'lucide'
-import {createPopper, type Instance as PopperInstance, type VirtualElement} from '@popperjs/core';
-import type {BubbleMenuItem} from "./types.ts";
-import {bubbleMenuField, showBubbleMenu} from "./fields.ts";
+import { EditorView, ViewUpdate, type PluginValue } from "@codemirror/view";
+import { EditorState } from "@codemirror/state";
+import * as icons from 'lucide';
+import { createPopper, type Instance as PopperInstance, type VirtualElement } from '@popperjs/core';
+import type { BubbleMenuItem } from "./types";
+import { bubbleMenuField, showBubbleMenu } from "./fields";
 import {
-    isHeaderActive, isInlineStyleActive,
+    isHeaderActive,
+    isInlineStyleActive,
     isListActive,
     setHeader,
     toggleInlineStyle,
     toggleList
-} from "./content-functions.ts";
+} from "./content-functions";
+import { CSS_CLASSES, ICON_SIZES, POPPER_CONFIG, MARKDOWN_MARKERS } from "../../core/constants";
+import { createElement, createIconElement } from "../../core/utils/dom-utils";
+import { isMarkdownImage } from "../../core/utils/string-utils";
+
+/**
+ * BubbleMenu - A floating toolbar that appears on text selection
+ * Provides quick access to formatting options like bold, italic, headings, etc.
+ */
 
 export class BubbleMenu implements PluginValue {
-    dom: HTMLElement;
-    items: BubbleMenuItem[];
-    view: EditorView;
-    popper: PopperInstance | null;
-    boundHandleMouseUp: (e: MouseEvent) => void;
+    private dom: HTMLElement;
+    private items: BubbleMenuItem[];
+    private view: EditorView;
+    private popper: PopperInstance | null;
+    private boundHandleMouseUp: (e: MouseEvent) => void;
 
     constructor(view: EditorView) {
         this.view = view;
-        this.dom = document.createElement('div');
-        this.dom.className = 'cm-bubble-menu';
+        this.dom = createElement('div', CSS_CLASSES.BUBBLE_MENU);
         this.items = this.createItems();
         this.buildMenu();
         document.body.appendChild(this.dom);
@@ -32,45 +40,58 @@ export class BubbleMenu implements PluginValue {
         document.addEventListener('mouseup', this.boundHandleMouseUp);
     }
 
-    update(update: ViewUpdate) {
+    update(update: ViewUpdate): void {
         const menu = update.state.field(bubbleMenuField);
         if (!menu) {
-            this.hideBubbleMenu();
+            this.hide();
             return;
         }
 
-        const {from, to} = update.state.selection.main;
-        if (from == to || this.isImageText(update.state, from, to)) {
-            this.hideBubbleMenu();
+        const { from, to } = update.state.selection.main;
+        if (from === to || this.isImageSelection(update.state, from, to)) {
+            this.hide();
             return;
         }
 
-        this.showBubbleMenu(from, to);
+        this.show(from, to);
     }
 
-    destroy() {
-        if (this.popper) {
-            this.popper.destroy();
-        }
+    destroy(): void {
+        this.destroyPopper();
         this.dom.remove();
         document.removeEventListener('mouseup', this.boundHandleMouseUp);
     }
 
-    private isImageText(state: EditorState, from: number, to: number): boolean {
-        const selectedText = state.sliceDoc(from, to).trim();
-        // 这里可以根据具体的Image文本格式进行更精确的判断
-        return /^!\[.*?\]\(.*?\)$/.test(selectedText); // 简单的Markdown图片语法检查
+    /**
+     * Checks if the current selection is an image markdown
+     */
+    private isImageSelection(state: EditorState, from: number, to: number): boolean {
+        const selectedText = state.sliceDoc(from, to);
+        return isMarkdownImage(selectedText);
     }
 
-    private hideBubbleMenu() {
+    /**
+     * Hides the bubble menu
+     */
+    private hide(): void {
         this.dom.style.display = 'none';
+        this.destroyPopper();
+    }
+
+    /**
+     * Destroys the Popper instance
+     */
+    private destroyPopper(): void {
         if (this.popper) {
             this.popper.destroy();
             this.popper = null;
         }
     }
 
-    private showBubbleMenu(from: number, to: number) {
+    /**
+     * Shows the bubble menu at the selection position
+     */
+    private show(from: number, to: number): void {
         requestAnimationFrame(() => {
             this.dom.style.display = 'flex';
 
@@ -106,53 +127,60 @@ export class BubbleMenu implements PluginValue {
                 }
             };
 
-            if (this.popper) {
-                this.popper.destroy();
-            }
+            this.destroyPopper();
 
             this.popper = createPopper(virtualElement, this.dom, {
-                placement: 'top',
+                placement: POPPER_CONFIG.PLACEMENT as any,
                 modifiers: [
                     {
                         name: 'offset',
                         options: {
-                            offset: [0, 8],
+                            offset: POPPER_CONFIG.OFFSET,
                         },
                     },
                 ],
             });
 
-            // 更新活动状态 - 修改这部分
+            // Update active states for menu items
             this.updateActiveStates();
 
-            // 强制更新 Popper 位置
+            // Force update Popper position
             this.popper.update();
         });
     }
 
-    // 更新激活状态
-    private updateActiveStates() {
+    /**
+     * Updates the active state of all menu items
+     */
+    private updateActiveStates(): void {
         this.items.forEach(item => {
-            // 更新主菜单项状态
+            // Update main menu item state
             if (item.isActive) {
-                const button = this.dom.querySelector(`[data-name="${item.name}"]`) as HTMLButtonElement;
+                const button = this.dom.querySelector(
+                    `[data-name="${item.name}"]`
+                ) as HTMLButtonElement;
                 if (button) {
-                    button.classList.toggle('active', item.isActive(this.view.state));
+                    button.classList.toggle(
+                        CSS_CLASSES.BUBBLE_MENU_ACTIVE,
+                        item.isActive(this.view.state)
+                    );
                 }
             }
 
-            // 更新子菜单项状态
+            // Update submenu item states
             if (item.subItems) {
                 item.subItems.forEach(subItem => {
                     if (subItem.isActive) {
-                        // 使用更简单的选择器
                         const subButton = this.dom.querySelector(
                             `[data-name="${subItem.name}"][data-parent="${item.name}"]`
                         ) as HTMLButtonElement;
 
                         if (subButton) {
                             const isActive = subItem.isActive(this.view.state);
-                            subButton.classList.toggle('active', isActive);
+                            subButton.classList.toggle(
+                                CSS_CLASSES.BUBBLE_MENU_ACTIVE,
+                                isActive
+                            );
                         }
                     }
                 });
@@ -160,18 +188,25 @@ export class BubbleMenu implements PluginValue {
         });
     }
 
-    private handleMouseUp(_event: MouseEvent) {
-        const {state} = this.view;
-        const {from, to} = state.selection.main;
-        if (from != to && !this.isImageText(state, from, to)) {
+    /**
+     * Handles mouse up event to show/hide the menu
+     */
+    private handleMouseUp(_event: MouseEvent): void {
+        const { state } = this.view;
+        const { from, to } = state.selection.main;
+        
+        if (from !== to && !this.isImageSelection(state, from, to)) {
             this.view.dispatch({
-                effects: showBubbleMenu.of({pos: Math.max(from, to), items: this.items})
+                effects: showBubbleMenu.of({ pos: Math.max(from, to), items: this.items })
             });
         } else {
-            this.hideBubbleMenu();
+            this.hide();
         }
     }
 
+    /**
+     * Creates the menu item configuration
+     */
     private createItems(): BubbleMenuItem[] {
         return [
             {
@@ -206,7 +241,7 @@ export class BubbleMenu implements PluginValue {
                 subItems: [
                     {
                         name: 'Ordered List',
-                        // @ts-expect-error ignore
+                        // @ts-expect-error - lucide icon name
                         icon: 'list-ordered',
                         action: view => toggleList(view, true),
                         isActive: state => isListActive(state, true),
@@ -223,15 +258,15 @@ export class BubbleMenu implements PluginValue {
                 name: 'bold',
                 icon: "Bold",
                 type: 'button',
-                action: view => toggleInlineStyle(view, '**'),
-                isActive: state => isInlineStyleActive(state, '**'),
+                action: view => toggleInlineStyle(view, MARKDOWN_MARKERS.BOLD),
+                isActive: state => isInlineStyleActive(state, MARKDOWN_MARKERS.BOLD),
             },
             {
                 name: 'italic',
                 icon: "Italic",
                 type: 'button',
-                action: view => toggleInlineStyle(view, '*'),
-                isActive: state => isInlineStyleActive(state, '*'),
+                action: view => toggleInlineStyle(view, MARKDOWN_MARKERS.ITALIC),
+                isActive: state => isInlineStyleActive(state, MARKDOWN_MARKERS.ITALIC),
             },
             {
                 name: 'Decoration',
@@ -241,79 +276,74 @@ export class BubbleMenu implements PluginValue {
                     {
                         name: 'highlight',
                         icon: "Highlighter",
-                        action: view => toggleInlineStyle(view, '=='),
-                        isActive: state => isInlineStyleActive(state, '=='),
+                        action: view => toggleInlineStyle(view, MARKDOWN_MARKERS.HIGHLIGHT),
+                        isActive: state => isInlineStyleActive(state, MARKDOWN_MARKERS.HIGHLIGHT),
                     },
                     {
                         name: 'Strikethrough',
                         icon: 'Strikethrough',
-                        action: view => toggleInlineStyle(view, '~~'),
-                        isActive: state => isInlineStyleActive(state, '~~'),
+                        action: view => toggleInlineStyle(view, MARKDOWN_MARKERS.STRIKETHROUGH),
+                        isActive: state => isInlineStyleActive(state, MARKDOWN_MARKERS.STRIKETHROUGH),
                     },
                     {
                         name: 'Underline',
                         icon: 'Underline',
-                        action: view => toggleInlineStyle(view, '~'),
-                        isActive: state => isInlineStyleActive(state, '~'),
+                        action: view => toggleInlineStyle(view, MARKDOWN_MARKERS.UNDERLINE),
+                        isActive: state => isInlineStyleActive(state, MARKDOWN_MARKERS.UNDERLINE),
                     },
                     {
                         name: 'Inline Code',
                         icon: 'Code',
-                        action: view => toggleInlineStyle(view, '`'),
-                        isActive: state => isInlineStyleActive(state, '`'),
+                        action: view => toggleInlineStyle(view, MARKDOWN_MARKERS.INLINE_CODE),
+                        isActive: state => isInlineStyleActive(state, MARKDOWN_MARKERS.INLINE_CODE),
                     },
                 ]
             }
         ];
     }
 
-    private buildMenu() {
-        this.dom.innerHTML = ''; // Clear existing content
+    /**
+     * Builds the DOM structure for the menu
+     */
+    private buildMenu(): void {
+        this.dom.innerHTML = '';
 
         this.items.forEach(item => {
-            const button = document.createElement('button');
-            button.className = 'cm-bubble-menu-item';
-            button.setAttribute('data-name', item.name);
-            button.setAttribute('data-type', item.type || 'button');
-            button.title = item.name;
+            const button = createElement('button', CSS_CLASSES.BUBBLE_MENU_ITEM, {
+                'data-name': item.name,
+                'data-type': item.type || 'button',
+                'title': item.name,
+            });
 
-            const iconWrapper = document.createElement('span');
-            iconWrapper.className = 'cm-bubble-menu-icon';
-            iconWrapper.innerHTML = `<i data-lucide="${item.icon}"></i>`;
+            const iconWrapper = createIconElement(item.icon, 'cm-bubble-menu-icon');
             button.appendChild(iconWrapper);
 
             if (item.type === 'dropdown') {
-                const dropdownIcon = document.createElement('span');
-                dropdownIcon.className = 'cm-bubble-menu-dropdown-icon';
-                dropdownIcon.innerHTML = '<i data-lucide="chevron-down"></i>';
+                const dropdownIcon = createIconElement('chevron-down', 'cm-bubble-menu-dropdown-icon');
                 button.appendChild(dropdownIcon);
 
-                const dropdown = document.createElement('div');
-                dropdown.className = 'cm-bubble-menu-dropdown';
+                const dropdown = createElement('div', CSS_CLASSES.BUBBLE_MENU_DROPDOWN);
 
                 item.subItems?.forEach(subItem => {
-                    const subButton = document.createElement('button');
-                    subButton.className = 'cm-bubble-menu-sub-item';
-                    subButton.setAttribute('data-name', subItem.name);
-                    // 添加父项目标识，便于查询
-                    subButton.setAttribute('data-parent', item.name);
+                    const subButton = createElement('button', CSS_CLASSES.BUBBLE_MENU_SUB_ITEM, {
+                        'data-name': subItem.name,
+                        'data-parent': item.name,
+                    });
 
                     if (subItem.icon) {
-                        const subIconWrapper = document.createElement('span');
-                        subIconWrapper.className = 'cm-bubble-menu-sub-icon';
-                        subIconWrapper.innerHTML = `<i data-lucide="${subItem.icon}"></i>`;
+                        const subIconWrapper = createIconElement(subItem.icon, 'cm-bubble-menu-sub-icon');
                         subButton.appendChild(subIconWrapper);
                     }
 
-                    const subLabel = document.createElement('span');
-                    subLabel.className = 'cm-bubble-menu-sub-label';
+                    const subLabel = createElement('span', 'cm-bubble-menu-sub-label');
                     subLabel.textContent = subItem.name;
                     subButton.appendChild(subLabel);
 
                     subButton.addEventListener('click', async (e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         await subItem.action(this.view);
-                        this.hideBubbleMenu();
+                        this.hide();
                     });
 
                     dropdown.appendChild(subButton);
@@ -321,21 +351,22 @@ export class BubbleMenu implements PluginValue {
 
                 button.appendChild(dropdown);
             } else if (item.action) {
-                button.addEventListener('click', () => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
                     item.action!(this.view);
-                    this.hideBubbleMenu();
+                    this.hide();
                 });
             }
 
             this.dom.appendChild(button);
         });
 
-        setTimeout(() => icons.createIcons({
-            icons,
-            attrs: {
-                width: '16',
-                height: '16'
-            }
-        }), 0);
+        // Initialize Lucide icons after DOM update
+        setTimeout(() => {
+            icons.createIcons({
+                icons,
+                attrs: ICON_SIZES.MEDIUM,
+            });
+        }, 0);
     }
 }
