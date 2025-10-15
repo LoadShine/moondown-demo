@@ -65,7 +65,7 @@ export const updateListPlugin = EditorView.updateListener.of((update) => {
                             return;
                         }
                     }
-                } catch (e) {
+                } catch (_ignore) {
                     // If error accessing lines, trigger update for safety
                     needsUpdate = true;
                 }
@@ -99,7 +99,6 @@ export const bulletListPlugin = ViewPlugin.fromClass(class {
 
     buildDecorations(view: EditorView) {
         const builder = new RangeSetBuilder<Decoration>();
-        const decorations: Array<{ from: number; to: number; decoration: Decoration }> = [];
 
         for (const { from, to } of view.visibleRanges) {
             syntaxTree(view.state).iterate({
@@ -118,44 +117,20 @@ export const bulletListPlugin = ViewPlugin.fromClass(class {
                             const bulletStart = line.from + (unorderedMatch.index || 0);
                             const bulletEnd = bulletStart + unorderedMatch[0].length;
 
-                            // Add widget decoration for custom bullet
-                            decorations.push({
-                                from: bulletStart,
-                                to: bulletStart,
-                                decoration: Decoration.widget({
+                            // Replace the entire marker with a custom bullet widget
+                            // This makes the operation more atomic and less prone to conflicts
+                            builder.add(
+                                bulletStart,
+                                bulletEnd,
+                                Decoration.replace({
                                     widget: new BulletWidget(levelClass, indentLevel, indentation),
-                                    side: 1
                                 })
-                            });
-
-                            // Hide original markdown bullet
-                            decorations.push({
-                                from: bulletStart,
-                                to: bulletEnd,
-                                decoration: Decoration.replace({})
-                            });
+                            );
                         }
                     }
                 }
             });
         }
-
-        // Sort decorations by position
-        decorations.sort((a, b) => {
-            if (a.from !== b.from) return a.from - b.from;
-            // Widget decorations should come before replace decorations
-            const aIsWidget = a.decoration.spec.widget !== undefined;
-            const bIsWidget = b.decoration.spec.widget !== undefined;
-            if (aIsWidget && !bIsWidget) return -1;
-            if (!aIsWidget && bIsWidget) return 1;
-            return 0;
-        });
-
-        // Add to builder
-        decorations.forEach(({ from, to, decoration }) => {
-            builder.add(from, to, decoration);
-        });
-
         return builder.finish();
     }
 }, {
