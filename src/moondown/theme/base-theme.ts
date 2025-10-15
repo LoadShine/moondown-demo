@@ -156,24 +156,35 @@ const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) 
         },
 
         // Code block styling
-        ".cm-fenced-code-line, .cm-fenced-code-line-selected": {
-            backgroundColor: colors.codeBackground,
+        ".cm-fenced-code": {
+            backgroundColor: 'transparent',
+            position: 'relative',
             color: colors.codeText,
             fontFamily: codeFont,
             padding: "0 12px",
-            borderRadius: "0",
             fontSize: "14px",
             lineHeight: "1.5",
         },
-        ".cm-fenced-code-line:first-of-type, .cm-fenced-code-line-selected:first-of-type": {
-            borderTopLeftRadius: "6px",
-            borderTopRightRadius: "6px",
+        ".cm-fenced-code::before": {
+            content: '""',
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: colors.codeBackground,
+            zIndex: -1,
+        },
+        ".cm-fenced-code.cm-fenced-code-first-line": {
             paddingTop: "8px",
         },
-        ".cm-fenced-code-line:last-of-type, .cm-fenced-code-line-selected:last-of-type": {
+        ".cm-fenced-code.cm-fenced-code-last-line": {
+            paddingBottom: "8px",
+        },
+        ".cm-fenced-code.cm-fenced-code-first-line::before": {
+            borderTopLeftRadius: "6px",
+            borderTopRightRadius: "6px",
+        },
+        ".cm-fenced-code.cm-fenced-code-last-line::before": {
             borderBottomLeftRadius: "6px",
             borderBottomRightRadius: "6px",
-            paddingBottom: "8px",
         },
 
         // List styling

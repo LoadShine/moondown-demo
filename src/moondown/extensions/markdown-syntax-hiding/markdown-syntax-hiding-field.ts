@@ -28,8 +28,6 @@ const orderedListMarker = Decoration.mark({class: 'cm-ordered-list-marker'}); //
 // Line decorations for styling
 const blockquoteLine = Decoration.line({class: 'cm-blockquote-line'});
 const blockquoteLineSelected = Decoration.line({class: 'cm-blockquote-line-selected'});
-const fencedCodeLine = Decoration.line({class: 'cm-fenced-code-line'});
-const fencedCodeLineSelected = Decoration.line({class: 'cm-fenced-code-line-selected'});
 // New line decorations for HorizontalRule
 const hrLine = Decoration.line({ class: 'cm-hr-line' });
 const hrLineSelected = Decoration.line({ class: 'cm-hr-line-selected' });
@@ -59,16 +57,6 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                     const fencedCodeEnd = state.doc.lineAt(end);
                     const languageMatch = fencedCodeStart.text.match(/^```(\w+)?/);
                     const language = languageMatch ? (languageMatch[1] || '') : '';
-
-                    // Add line decorations for all lines in the code block
-                    for (let lineNum = fencedCodeStart.number; lineNum <= fencedCodeEnd.number; lineNum++) {
-                        const line = state.doc.line(lineNum);
-                        decorations.push({
-                            from: line.from,
-                            to: line.from,
-                            decoration: isSelected ? fencedCodeLineSelected : fencedCodeLine
-                        });
-                    }
 
                     if (!isSelected && isHidingEnabled) {
                         const openingEnd = fencedCodeStart.from + 3 + language.length;
