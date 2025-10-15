@@ -543,70 +543,52 @@ export default class TableEditor {
      * Recalculates the correct positions of all edge buttons.
      */
     _recalculateEdgeButtonPositions(): void {
-        const spacing = 5; // 定义间距，单位为像素
-        const currentCell = this._elem.rows[this._rowIndex].cells[this._cellIndex];
+        const spacing = 5; // Spacing in pixels
+        const currentCell = this._elem.rows[this._rowIndex]?.cells[this._cellIndex];
+
+        // Exit if the current cell doesn't exist (e.g., table is being rebuilt)
+        if (!currentCell) {
+            this._hideAllButtons();
+            return;
+        }
+
         const currentRow = this._elem.rows[this._rowIndex];
         const currentColumn = Array.from(this._elem.rows).map(row => row.cells[this._cellIndex]);
 
         const cellRect = currentCell.getBoundingClientRect();
         const rowRect = currentRow.getBoundingClientRect();
-        const columnRect = {
-            top: Math.min(...currentColumn.map(cell => cell.getBoundingClientRect().top)),
-            left: cellRect.left,
-            width: cellRect.width,
-            height: this._elem.getBoundingClientRect().height
-        };
+
+        // Calculate the top of the column by finding the min top of all cells in that column
+        const columnTop = Math.min(...currentColumn.map(cell => cell.getBoundingClientRect().top));
+
         const containerRect = this._containerElement.getBoundingClientRect();
 
-        const cellTop = cellRect.top;
-        const cellLeft = cellRect.left;
-        const cellWidth = cellRect.width;
-        const cellHeight = cellRect.height;
-        const cellBottom = cellTop + cellHeight;
-        const containerTop = containerRect.top;
-        const containerHeight = containerRect.height;
-        const containerBottom = containerTop + containerHeight;
+        // Use page scroll offsets to convert viewport-relative coords to absolute coords
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
 
-        const cellIsOnScreen = cellTop > containerTop && cellBottom < containerBottom;
+        // Check if the cell is visible on the screen to avoid calculating for off-screen elements
+        const cellIsOnScreen = cellRect.top > containerRect.top && cellRect.bottom < containerRect.bottom;
 
         if (cellIsOnScreen) {
-            // 调整顶部按钮位置到当前列的顶部，并添加间距
-            this._addTopButton.style.top = `${columnRect.top - this._edgeButtonSize * 0.6 - spacing}px`;
-            this._addTopButton.style.left = `${cellLeft + cellWidth / 2 - this._edgeButtonSize * 1.2 / 2}px`;
+            // Calculate and set the top button's position
+            const topButtonTop = scrollTop + columnTop - this._edgeButtonSize * 0.6 - spacing;
+            const topButtonLeft = scrollLeft + cellRect.left + cellRect.width / 2 - (this._edgeButtonSize * 1.2 / 2);
+            this._addTopButton.style.top = `${topButtonTop}px`;
+            this._addTopButton.style.left = `${topButtonLeft}px`;
 
-            // 调整左侧按钮位置到当前行的左侧，并添加间距
-            this._addLeftButton.style.top = `${rowRect.top + rowRect.height / 2 - this._edgeButtonSize * 1.2 / 2}px`;
-            this._addLeftButton.style.left = `${rowRect.left - this._edgeButtonSize * 0.6 - spacing}px`;
-
-            const topButtonRect = this._addTopButton.getBoundingClientRect();
-            const leftButtonRect = this._addLeftButton.getBoundingClientRect();
-
-            // 边界检查，确保按钮在可见区域内
-            if (topButtonRect.top < containerTop + spacing) {
-                this._addTopButton.style.top = `${containerTop + spacing}px`;
-            }
-            if (leftButtonRect.top < containerTop + spacing) {
-                this._addLeftButton.style.top = `${containerTop + spacing}px`;
-            }
-
-            if (topButtonRect.top + this._edgeButtonSize > containerBottom - spacing) {
-                this._addTopButton.style.top = `${containerBottom - this._edgeButtonSize - spacing}px`;
-            }
-            if (leftButtonRect.top + this._edgeButtonSize > containerBottom - spacing) {
-                this._addLeftButton.style.top = `${containerBottom - this._edgeButtonSize - spacing}px`;
-            }
-
-            if (topButtonRect.left + this._edgeButtonSize > containerRect.right - spacing) {
-                this._addTopButton.style.left = `${containerRect.right - this._edgeButtonSize - spacing}px`;
-            }
-            if (leftButtonRect.left + this._edgeButtonSize > containerRect.right - spacing) {
-                this._addLeftButton.style.left = `${containerRect.right - this._edgeButtonSize - spacing}px`;
-            }
+            // Calculate and set the left button's position
+            const leftButtonTop = scrollTop + rowRect.top + rowRect.height / 2 - (this._edgeButtonSize * 1.2 / 2);
+            const leftButtonLeft = scrollLeft + rowRect.left - this._edgeButtonSize * 0.6 - spacing;
+            this._addLeftButton.style.top = `${leftButtonTop}px`;
+            this._addLeftButton.style.left = `${leftButtonLeft}px`;
         } else {
+            // Hide buttons if the cell is not on screen
             this._addTopButton.style.top = '-1000px';
             this._addLeftButton.style.top = '-1000px';
         }
     }
+
 
     /**
      * Displays the edge buttons for adding rows, columns, alignment and removal.
