@@ -20,6 +20,10 @@ This is a demo to test the Moondown editor inside a React application.
 
 Try editing this document. You can also use the buttons below to interact with the editor programmatically.
 
+#### Link Test
+
+[HELLO TEST](https://www.baidu.com)
+
 > Blockquotes are supported too!
 
 \`\`\`javascript
