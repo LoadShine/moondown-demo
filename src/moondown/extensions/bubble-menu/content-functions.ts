@@ -204,45 +204,6 @@ export function  toggleInlineStyle(view: EditorView, mark: string): boolean {
     return true;
 }
 
-export function  insertLink(view: EditorView): boolean {
-    const {state, dispatch} = view;
-    const {from, to} = state.selection.main;
-    const selectedText = state.sliceDoc(from, to);
-    const linkText = selectedText || 'Link text';
-    const linkUrl = 'https://example.com';
-
-    dispatch({
-        changes: {from, to, insert: `[${linkText}](${linkUrl})`}
-    });
-    return true;
-}
-
-export function  insertImage(view: EditorView): boolean {
-    const {state, dispatch} = view;
-    const {from} = state.selection.main;
-
-    dispatch({
-        changes: {from, insert: '![Alt text](image_url)'}
-    });
-    return true;
-}
-
-export function  insertTable(view: EditorView): boolean {
-    const {state, dispatch} = view;
-    const {from} = state.selection.main;
-    const tableTemplate = `
-| Header 1 | Header 2 | Header 3 |
-|----------|----------|----------|
-| Row 1, Col 1 | Row 1, Col 2 | Row 1, Col 3 |
-| Row 2, Col 1 | Row 2, Col 2 | Row 2, Col 3 |
-`;
-
-    dispatch({
-        changes: {from, insert: tableTemplate}
-    });
-    return true;
-}
-
 export function  isHeaderActive(state: EditorState, level: number): boolean {
     const {from} = state.selection.main;
     const line = state.doc.lineAt(from);
