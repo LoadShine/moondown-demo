@@ -505,11 +505,13 @@ export default class TableEditor {
         // if any element inside the table has in the meantime received
         // focus.
         setTimeout(() => {
-            if (this._elem.querySelectorAll(':focus').length === 0) {
-                // If we are here, the full table has lost focus.
+            const activeElement = document.activeElement;
+
+            if (!activeElement || !activeElement.closest('table.table-helper')) {
+                // If we are here, focus has truly left ALL table editors.
                 // It's a good idea to update any content now!
                 if (this._options.onBlur !== undefined) {
-                    this._options.onBlur(this)
+                    this._options.onBlur(this);
                 }
             }
         }, 10)
