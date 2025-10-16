@@ -6,14 +6,21 @@ import { InlineCodeWidget, StrikethroughWidget, HighlightWidget, UnderlineWidget
 import { CSS_CLASSES } from "../../core";
 
 /**
- * Decoration types
+ * Decoration types with explicit startSide values
  */
 const hiddenMarkdown = Decoration.mark({ class: CSS_CLASSES.HIDDEN_MARKDOWN });
 const visibleMarkdown = Decoration.mark({ class: CSS_CLASSES.VISIBLE_MARKDOWN });
 const orderedListMarker = Decoration.mark({ class: 'cm-ordered-list-marker' });
 
-const blockquoteLine = Decoration.line({ class: 'cm-blockquote-line' });
-const blockquoteLineSelected = Decoration.line({ class: 'cm-blockquote-line-selected' });
+// Line decorations with explicit startSide to avoid conflicts
+const blockquoteLine = Decoration.line({
+    class: 'cm-blockquote-line',
+    attributes: { 'data-blockquote': 'true' }
+});
+const blockquoteLineSelected = Decoration.line({
+    class: 'cm-blockquote-line-selected',
+    attributes: { 'data-blockquote-selected': 'true' }
+});
 const hrLine = Decoration.line({ class: 'cm-hr-line' });
 const hrLineSelected = Decoration.line({ class: 'cm-hr-line-selected' });
 
@@ -73,42 +80,56 @@ export function handleFencedCode(ctx: HandlerContext): DecorationItem[] {
  */
 export function handleBlockquote(ctx: HandlerContext): DecorationItem[] {
     const { state, isSelected, isHidingEnabled, start, end } = ctx;
-    const decorations: DecorationItem[] = [];
 
     const blockquoteStart = state.doc.lineAt(start);
     const blockquoteEnd = state.doc.lineAt(end);
 
+    // Collect all decorations first
+    const lineDecorations: DecorationItem[] = [];
+    const markerDecorations: DecorationItem[] = [];
+
     // Add line decorations
     for (let lineNum = blockquoteStart.number; lineNum <= blockquoteEnd.number; lineNum++) {
         const line = state.doc.line(lineNum);
-        decorations.push({
+        lineDecorations.push({
             from: line.from,
             to: line.from,
             decoration: isSelected ? blockquoteLineSelected : blockquoteLine
         });
     }
 
-    // Handle > markers
-    for (let pos = start; pos <= end;) {
-        const line = state.doc.lineAt(pos);
-        const match = line.text.match(/^(\s*>\s?)/);
+    // Handle > markers - process each line
+    for (let lineNum = blockquoteStart.number; lineNum <= blockquoteEnd.number; lineNum++) {
+        const line = state.doc.line(lineNum);
+        const lineText = line.text;
 
-        if (match) {
-            const quoteCharPos = line.from + match[1].indexOf('>');
-            const decorationType = getDecorationType(isSelected, isHidingEnabled);
+        // Find all > markers in this line (for nested blockquotes)
+        let searchPos = 0;
+        while (searchPos < lineText.length) {
+            const remainingText = lineText.slice(searchPos);
+            const match = remainingText.match(/^(\s*)>([\s]?)/);
 
-            decorations.push({
-                from: quoteCharPos,
-                to: quoteCharPos + 1,
-                decoration: decorationType
-            });
+            if (match) {
+                const quoteCharPos = line.from + searchPos + match[1].length;
+                const decorationType = getDecorationType(isSelected, isHidingEnabled);
+
+                markerDecorations.push({
+                    from: quoteCharPos,
+                    to: quoteCharPos + 1,
+                    decoration: decorationType
+                });
+
+                // Move past this marker and any following space
+                searchPos += match[0].length;
+            } else {
+                // No more > markers on this line
+                break;
+            }
         }
-
-        pos = line.to + 1;
-        if (pos > end) break;
     }
 
-    return decorations;
+    // Return in correct order: line decorations first, then markers
+    return [...lineDecorations, ...markerDecorations];
 }
 
 /**

@@ -81,6 +81,9 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
         const selection = state.selection.main;
         const isHidingEnabled = state.field(syntaxHidingState);
 
+        // Track processed blockquote ranges to avoid duplicates
+        const processedBlockquotes = new Set<string>();
+
         syntaxTree(state).iterate({
             enter: (node) => {
                 const start = node.from;
@@ -102,6 +105,16 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                     return;
                 }
 
+                // Special handling for Blockquote to avoid duplicates
+                if (node.type.name === 'Blockquote') {
+                    const key = `${start}-${end}`;
+                    if (!processedBlockquotes.has(key)) {
+                        processedBlockquotes.add(key);
+                        decorations.push(...handleBlockquote(ctx));
+                    }
+                    return;
+                }
+
                 // Handle other node types
                 const handler = NODE_HANDLERS[node.type.name];
                 if (handler) {
@@ -110,11 +123,13 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
             },
         });
 
-        // Sort decorations by position
+        // Sort with comprehensive comparison
         decorations.sort((a, b) => {
             if (a.from !== b.from) return a.from - b.from;
-            const aStartSide = a.decoration.spec.startSide || 0;
-            const bStartSide = b.decoration.spec.startSide || 0;
+            if (a.to !== b.to) return a.to - b.to;
+
+            const aStartSide = a.decoration.spec.startSide ?? 0;
+            const bStartSide = b.decoration.spec.startSide ?? 0;
             return aStartSide - bStartSide;
         });
 
