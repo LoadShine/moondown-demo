@@ -31,14 +31,26 @@ import { lightTheme } from "../theme/base-theme";
 export const themeCompartment = new Compartment();
 
 /**
+ * Compartment for WYSIWYG extensions that can be toggled
+ */
+export const wysiwygCompartment = new Compartment();
+
+/**
+ * Extensions that provide the WYSIWYG experience
+ * These will be toggled on/off by the "Hide Syntax" switch.
+ */
+export const wysiwygExtensions: Extension[] = [
+    tableExtension(),
+    imageExtension(),
+    markdownSyntaxHiding(),
+];
+
+/**
  * Default editor extensions
  * Includes all core functionality: markdown parsing, syntax highlighting,
  * bubble menu, slash commands, table editing, image support, etc.
  */
 export const defaultExtensions: Extension[] = [
-    // Table editing support
-    tableExtension(),
-
     // History and undo/redo
     history(),
 
@@ -46,13 +58,12 @@ export const defaultExtensions: Extension[] = [
     rectangularSelection(),
     indentOnInput(),
 
-    // Custom extensions
+    // Core functionality extensions
     slashCommand(),
     correctList(),
     fencedCode(),
     blockquote(),
     bubbleMenu(),
-    imageExtension(),
 
     // Keymaps
     keymap.of([
@@ -65,7 +76,9 @@ export const defaultExtensions: Extension[] = [
 
     // Editor behavior
     EditorView.lineWrapping,
-    markdownSyntaxHiding(),
+
+    // WYSIWYG extensions, loaded into a compartment to be toggled
+    wysiwygCompartment.of(wysiwygExtensions),
 
     // Markdown language support
     markdown({

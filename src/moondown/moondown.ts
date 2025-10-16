@@ -1,14 +1,18 @@
 // src/moondown/moondown.ts
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
-import { defaultExtensions, themeCompartment } from "./extensions/default-extensions";
-import { toggleSyntaxHidingEffect } from "./extensions/markdown-syntax-hiding/markdown-syntax-hiding-field";
+import {
+    defaultExtensions,
+    themeCompartment,
+    wysiwygCompartment,
+    wysiwygExtensions
+} from "./extensions/default-extensions";
 import { darkTheme, lightTheme } from "./theme/base-theme";
 import type { EditorConfig, Theme } from "./core";
 
 /**
  * Moondown - A modern, feature-rich markdown editor built on CodeMirror 6
- * 
+ *
  * Features:
  * - Live markdown preview with syntax highlighting
  * - Bubble menu for text formatting
@@ -17,7 +21,7 @@ import type { EditorConfig, Theme } from "./core";
  * - Table editing support
  * - Image drag & drop
  * - Light/dark themes
- * 
+ *
  * @example
  * ```typescript
  * const editor = new Moondown(document.getElementById('editor'), '# Hello World');
@@ -26,7 +30,7 @@ import type { EditorConfig, Theme } from "./core";
  * ```
  */
 class Moondown {
-    private view: EditorView;
+    public view: EditorView;
 
     /**
      * Creates a new Moondown editor instance
@@ -49,9 +53,7 @@ class Moondown {
         if (config?.theme) {
             this.setTheme(config.theme);
         }
-        if (config?.syntaxHiding !== undefined) {
-            this.toggleSyntaxHiding(config.syntaxHiding);
-        }
+        this.toggleSyntaxHiding(config?.syntaxHiding === undefined ? true : config.syntaxHiding);
     }
 
     /**
@@ -73,12 +75,14 @@ class Moondown {
     }
 
     /**
-     * Toggles markdown syntax hiding
-     * @param enabled - True to hide syntax markers, false to show them
+     * Toggles markdown syntax hiding and WYSIWYG features.
+     * When enabled, renders tables, images, etc., as widgets.
+     * When disabled, shows raw markdown source.
+     * @param enabled - True to enable WYSIWYG mode, false for raw markdown.
      */
     toggleSyntaxHiding(enabled: boolean): void {
         this.view.dispatch({
-            effects: toggleSyntaxHidingEffect.of(enabled)
+            effects: wysiwygCompartment.reconfigure(enabled ? wysiwygExtensions : [])
         });
     }
 

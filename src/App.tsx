@@ -474,11 +474,11 @@ function App() {
         }
     };
 
-    const handleToggleSyntaxHiding = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const enabled = e.target.checked;
-        setIsSyntaxHiding(enabled);
+    const handleToggleSyntaxHiding = () => {
+        const newIsHiding = !isSyntaxHiding;
+        setIsSyntaxHiding(newIsHiding);
         if (editorInstance) {
-            editorInstance.toggleSyntaxHiding(enabled);
+            editorInstance.toggleSyntaxHiding(newIsHiding);
         }
     };
 
@@ -505,7 +505,7 @@ function App() {
                                     Hide Syntax
                                 </label>
                                 <button
-                                    onClick={() => handleToggleSyntaxHiding({ target: { checked: !isSyntaxHiding } } as any)}
+                                    onClick={handleToggleSyntaxHiding}
                                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                                         isSyntaxHiding ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
                                     }`}
