@@ -19,7 +19,7 @@ This section tests basic text formatting capabilities:
 
 ~~Strikethrough text~~ and ~underlined text~
 
-\`Inline code\` and regular text with ^superscript^ and ~subscript~
+\`Inline code\` is supported.
 
 ### Links and References
 
@@ -31,8 +31,8 @@ Auto-linked URLs: https://www.apple.com and https://developer.mozilla.org
 
 #### Ordered List
 1. First ordered item
-   1. Nested ordered item
-   2. Another nested item
+   1.1. Nested ordered item
+   1.2. Another nested item
 2. Second ordered item
 3. Third ordered item
 
@@ -49,8 +49,8 @@ Auto-linked URLs: https://www.apple.com and https://developer.mozilla.org
    - Unordered sub-item
    - Another unordered sub-item
 2. Second ordered item
-   1. Nested ordered item
-   2. Another nested ordered item
+   2.1. Nested ordered item
+   2.2. Another nested ordered item
 
 ### Blockquotes
 
@@ -569,10 +569,13 @@ function App() {
                             </div>
                         </div>
 
-                        <MoondownWrapper
-                            initialValue={initialContent}
-                            onReady={handleEditorReady}
-                        />
+                        {/* 只添加简单的 padding，不要边框和背景 */}
+                        <div className="px-6 py-4">
+                            <MoondownWrapper
+                                initialValue={initialContent}
+                                onReady={handleEditorReady}
+                            />
+                        </div>
                     </div>
                 </div>
 

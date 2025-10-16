@@ -78,10 +78,16 @@ const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) 
             color: colors.primaryText,
             backgroundColor: colors.background,
         },
+        "&.cm-focused": {
+            outline: "none",
+        },
         ".cm-content": {
             fontFamily: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
             fontSize: "16px",
             lineHeight: "1.6",
+        },
+        ".cm-content.cm-focused": {
+            outline: "none",
         },
         ".cm-line": {
             padding: "0 8px",

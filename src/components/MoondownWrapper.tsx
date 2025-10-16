@@ -1,6 +1,6 @@
 // src/components/MoondownWrapper.tsx
 import React, { useRef, useEffect } from 'react';
-import Moondown from '../moondown/moondown'; // Import directly from our created directory
+import Moondown from '../moondown/moondown';
 
 interface MoondownWrapperProps {
     initialValue?: string;
@@ -15,26 +15,20 @@ const MoondownWrapper: React.FC<MoondownWrapperProps> = ({ initialValue = '', on
         let editorInstance: Moondown | null = null;
 
         if (containerRef.current && !isInitialized.current) {
-            // Initialize Moondown editor
             editorInstance = new Moondown(containerRef.current, initialValue);
-
-            // Pass instance to parent component via callback
             onReady(editorInstance);
-
             isInitialized.current = true;
         }
 
-        // Destroy editor instance when component unmounts to prevent memory leaks
         return () => {
             if (editorInstance) {
                 editorInstance.destroy();
                 isInitialized.current = false;
             }
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Empty dependency array ensures effect runs only once
+    }, []);
 
-    return <div ref={containerRef} className="border rounded-md shadow-sm min-h-[300px] w-full" />;
+    return <div ref={containerRef} className="min-h-[300px] w-full" />;
 };
 
 export default MoondownWrapper;
