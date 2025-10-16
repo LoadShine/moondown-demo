@@ -44,9 +44,9 @@ export const syntaxHidingState = StateField.define<boolean>({
  */
 type NodeHandler = (ctx: HandlerContext, node?: any) => DecorationItem[];
 
-// MODIFICATION: Removed 'Blockquote' from this map.
 const NODE_HANDLERS: Record<string, NodeHandler> = {
     'FencedCode': handleFencedCode,
+    'Blockquote': handleBlockquote,
     'HorizontalRule': handleHorizontalRule,
     'ListItem': handleListItem,
     'Emphasis': (ctx) => handleEmphasis(ctx, false),
@@ -95,11 +95,6 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                     start,
                     end
                 };
-
-                if (node.type.name === 'Blockquote') {
-                    decorations.push(...handleBlockquote(ctx));
-                    return false;
-                }
 
                 // Handle ATX headings
                 if (node.type.name.startsWith('ATXHeading')) {
