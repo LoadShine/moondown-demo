@@ -2,11 +2,7 @@
 import {EditorView, Decoration} from "@codemirror/view"
 import {StateField, RangeSetBuilder, EditorState} from "@codemirror/state"
 import {syntaxTree} from "@codemirror/language"
-import {
-    fencedCodeDecoration,
-    // fencedCodeFirstLineDecoration, fencedCodeLastLineDecoration,
-    hideLineDecoration
-} from "./decorations.ts";
+import {fencedCodeDecoration} from "./decorations.ts";
 
 // Define plugin to handle code block backgrounds and styles
 export const fencedCodeBackgroundPlugin = StateField.define({
@@ -16,19 +12,17 @@ export const fencedCodeBackgroundPlugin = StateField.define({
     update(_decorations, transaction) {
         const state = transaction.state
         const ranges: { from: number, to: number, decoration: Decoration }[] = []
-        const selection = state.selection.main
 
         syntaxTree(state).iterate({
             enter: (node) => {
                 if (node.type.name === "FencedCode") {
                     const start = node.from
                     const end = node.to
-                    const isSelected = selection.from <= end && selection.to >= start
 
                     const startLine = state.doc.lineAt(start)
                     const endLine = state.doc.lineAt(end)
 
-                    // Add background color for all lines
+                    // Only add background color for all lines
                     let pos = startLine.from
                     while (pos <= endLine.from) {
                         const line = state.doc.lineAt(pos)
@@ -39,41 +33,12 @@ export const fencedCodeBackgroundPlugin = StateField.define({
                         })
                         pos = line.to + 1
                     }
-
-                    if (!isSelected && startLine.number !== endLine.number) {
-                        // Cursor not in code block and code block has more than one line, hide first and last lines
-                        ranges.push({
-                            from: startLine.from,
-                            to: startLine.from,
-                            decoration: hideLineDecoration
-                        })
-                        ranges.push({
-                            from: endLine.from,
-                            to: endLine.from,
-                            decoration: hideLineDecoration
-                        })
-                    }
                 }
             }
         })
 
-        // Sort ranges by from position
-        ranges.sort((a, b) => {
-            const fromDiff = a.from - b.from
-            if (fromDiff !== 0) {
-                return fromDiff
-            }
-            // If from position is the same, sort by decoration type
-            if (a.decoration === fencedCodeDecoration) {
-                return -1
-            }
-            if (b.decoration === fencedCodeDecoration) {
-                return 1
-            }
-            return 0
-        })
+        ranges.sort((a, b) => a.from - b.from)
 
-        // Create new RangeSetBuilder and add decorations in sorted order
         const builder = new RangeSetBuilder<Decoration>()
         for (const {from, to, decoration} of ranges) {
             builder.add(from, to, decoration)

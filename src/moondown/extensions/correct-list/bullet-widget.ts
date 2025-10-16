@@ -10,6 +10,7 @@ export class BulletWidget extends WidgetType {
         const span = document.createElement("span");
         span.innerHTML = `${this.indentation}${this.getBulletSymbol(this.level)} `;
         span.className = `cm-bullet-list ${this.className}`;
+        span.style.display = 'inline-block';
         return span;
     }
 

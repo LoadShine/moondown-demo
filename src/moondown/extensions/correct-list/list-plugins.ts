@@ -105,20 +105,22 @@ export const bulletListPlugin = ViewPlugin.fromClass(class {
                 from,
                 to,
                 enter: (node) => {
-                    if (node.name.includes('ListItem')) {
+                    if (node.name === 'ListItem' || node.name.includes('ListItem')) {
                         const line = view.state.doc.lineAt(node.from);
-                        const unorderedMatch = line.text.match(/^(\s*)([-*+])\s/);
+
+                        const unorderedMatch = line.text.match(/^(\s*(?:>\s*)*)(\s*)([-*+])\s/);
 
                         if (unorderedMatch) {
-                            const indentation = unorderedMatch[1] || '';
+                            const blockquotePrefix = unorderedMatch[1] || '';
+                            const indentation = unorderedMatch[2] || '';
+                            const marker = unorderedMatch[3];
+
                             const indentLevel = Math.floor(indentation.length / LIST_INDENT.SIZE);
                             const levelClass = `cm-bullet-list-l${indentLevel % BULLET_STYLE_COUNT}`;
 
-                            const bulletStart = line.from + (unorderedMatch.index || 0);
-                            const bulletEnd = bulletStart + unorderedMatch[0].length;
+                            const bulletStart = line.from + blockquotePrefix.length + indentation.length;
+                            const bulletEnd = bulletStart + marker.length + 1; // +1 for the space after marker
 
-                            // Replace the entire marker with a custom bullet widget
-                            // This makes the operation more atomic and less prone to conflicts
                             builder.add(
                                 bulletStart,
                                 bulletEnd,

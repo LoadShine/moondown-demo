@@ -59,18 +59,53 @@ export function handleFencedCode(ctx: HandlerContext): DecorationItem[] {
     const { state, isSelected, isHidingEnabled, start, end } = ctx;
     const decorations: DecorationItem[] = [];
 
+    if (isSelected || !isHidingEnabled) {
+        // When selected or hiding disabled, show everything
+        return decorations;
+    }
+
     const fencedCodeStart = state.doc.lineAt(start);
     const fencedCodeEnd = state.doc.lineAt(end);
-    const languageMatch = fencedCodeStart.text.match(/^```(\w+)?/);
-    const language = languageMatch ? (languageMatch[1] || '') : '';
-    const openingEnd = fencedCodeStart.from + 3 + language.length;
 
-    const decorationType = (!isSelected && isHidingEnabled) ? hiddenMarkdown : visibleMarkdown;
+    // Check if this is a multi-line code block
+    if (fencedCodeStart.number === fencedCodeEnd.number) {
+        return decorations;
+    }
 
-    decorations.push(
-        { from: fencedCodeStart.from, to: openingEnd, decoration: decorationType },
-        { from: fencedCodeEnd.to - 3, to: fencedCodeEnd.to, decoration: decorationType }
-    );
+    // Match opening fence: optional whitespace + optional blockquote marker + backticks + optional language
+    const openingMatch = fencedCodeStart.text.match(/^(\s*(?:>\s*)?)(```+)(\w*)/);
+
+    if (openingMatch) {
+        const prefix = openingMatch[1]; // whitespace or blockquote markers
+        const backticks = openingMatch[2];
+        const language = openingMatch[3];
+
+        // Hide from after prefix to end of line
+        const hideStart = fencedCodeStart.from + prefix.length;
+        const hideEnd = hideStart + backticks.length + language.length;
+
+        decorations.push({
+            from: hideStart,
+            to: hideEnd,
+            decoration: hiddenMarkdown
+        });
+    }
+
+    // Match closing fence
+    const closingMatch = fencedCodeEnd.text.match(/^(\s*(?:>\s*)?)(```+)/);
+    if (closingMatch) {
+        const prefix = closingMatch[1];
+        const backticks = closingMatch[2];
+
+        const hideStart = fencedCodeEnd.from + prefix.length;
+        const hideEnd = hideStart + backticks.length;
+
+        decorations.push({
+            from: hideStart,
+            to: hideEnd,
+            decoration: hiddenMarkdown
+        });
+    }
 
     return decorations;
 }
