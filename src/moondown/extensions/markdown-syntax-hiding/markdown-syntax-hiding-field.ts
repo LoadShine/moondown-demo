@@ -44,9 +44,9 @@ export const syntaxHidingState = StateField.define<boolean>({
  */
 type NodeHandler = (ctx: HandlerContext, node?: any) => DecorationItem[];
 
+// MODIFICATION: Removed 'Blockquote' from this map.
 const NODE_HANDLERS: Record<string, NodeHandler> = {
     'FencedCode': handleFencedCode,
-    'Blockquote': handleBlockquote,
     'HorizontalRule': handleHorizontalRule,
     'ListItem': handleListItem,
     'Emphasis': (ctx) => handleEmphasis(ctx, false),
@@ -74,7 +74,7 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
     create(_: EditorState) {
         return Decoration.none;
     },
-    
+
     update(_oldDecorations, transaction) {
         const decorations: DecorationItem[] = [];
         const { state } = transaction;
@@ -86,7 +86,7 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                 const start = node.from;
                 const end = node.to;
                 const isSelected = selection.from <= end && selection.to >= start;
-                
+
                 const ctx: HandlerContext = {
                     state,
                     selection,
@@ -95,6 +95,11 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                     start,
                     end
                 };
+
+                if (node.type.name === 'Blockquote') {
+                    decorations.push(...handleBlockquote(ctx));
+                    return false;
+                }
 
                 // Handle ATX headings
                 if (node.type.name.startsWith('ATXHeading')) {
@@ -122,6 +127,6 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
             decorations.map(({ from, to, decoration }) => decoration.range(from, to))
         );
     },
-    
+
     provide: (f) => EditorView.decorations.from(f),
 });
