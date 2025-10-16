@@ -564,9 +564,6 @@ function App() {
                                 </div>
                                 <span className="text-sm text-gray-500 dark:text-gray-400 ml-3">document.md</span>
                             </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                                Words: {initialContent.split(/\s+/).length} | Characters: {initialContent.length}
-                            </div>
                         </div>
 
                         {/* 只添加简单的 padding，不要边框和背景 */}
