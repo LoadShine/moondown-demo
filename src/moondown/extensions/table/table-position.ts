@@ -41,11 +41,23 @@ export const tablePositions = StateField.define<Map<number, {from: number, to: n
      */
     update(value, tr) {
         const newValue = new Map(value)
+
         for (const effect of tr.effects) {
             if (effect.is(updateTablePosition)) {
                 newValue.set(effect.value.id, {from: effect.value.from, to: effect.value.to})
             }
         }
+
+        if (tr.docChanged) {
+            const updatedPositions = new Map<number, {from: number, to: number}>();
+            newValue.forEach((pos, id) => {
+                const newFrom = tr.changes.mapPos(pos.from);
+                const newTo = tr.changes.mapPos(pos.to);
+                updatedPositions.set(id, {from: newFrom, to: newTo});
+            });
+            return updatedPositions;
+        }
+
         return newValue
     }
 })
