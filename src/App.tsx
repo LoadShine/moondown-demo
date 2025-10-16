@@ -13,7 +13,7 @@ const initialContent = `# Moondown Editor - Comprehensive Test Document
 
 ### Text Formatting
 
-This section tests basic text formatting capabilities:
+==This section== tests basic text formatting capabilities:
 
 **Bold text** and *italic text* and ***bold italic text***
 
@@ -203,10 +203,10 @@ class MoondownProcessor:
 #### Complex Table with Formatting
 | **Language** | **Use Case** | **Popularity** | **Learning Curve** |
 |:-------------|:-------------|:---------------|:-------------------|
-| **JavaScript** | Web Development | ★★★★★ | Beginner |
-| **Python** | Data Science | ★★★★☆ | Beginner |
-| **Rust** | Systems Programming | ★★★☆☆ | Advanced |
-| **Go** | Cloud Services | ★★★★☆ | Intermediate |
+| **JavaScript** | *Web Development* | ★★★★★ | Beginner |
+| **Python** | ~Data Science~ | ★★★★☆ | Beginner |
+| **Rust** | ~~Systems Programming~~ | ★★★☆☆ | Advanced |
+| **Go** | ==Cloud Services== | ★★★★☆ | Intermediate |
 
 #### Table with Code
 | Function | Description | Example |
