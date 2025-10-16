@@ -17,6 +17,8 @@
   <a href="#-extension-system">Extension System</a>
 </p>
 
+<p align="center"><strong>English Version</strong> | <a href="README_cn.md">中文版</a></p>
+
 ## 🌟 Introduction
 
 **Moondown** is a modern, feature-rich Markdown editor built on CodeMirror 6. It provides a What-You-See-Is-What-You-Get (WYSIWYG) editing experience while maintaining the simplicity and portability of Markdown. Whether for writing, note-taking, or document editing, Moondown offers a smooth and efficient editing experience.

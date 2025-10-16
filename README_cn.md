@@ -17,7 +17,7 @@
   <a href="#-扩展系统">扩展系统</a>
 </p>
 
-<p align="center"><strong>English Version</strong> | <a href="#chinese-version">中文版</a></p>
+<p align="center"><a href="README.md">English Version</a> | <strong>中文版</strong></p>
 
 ## 🌟 项目简介
 
