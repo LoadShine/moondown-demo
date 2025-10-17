@@ -30,7 +30,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
   }
   
-  /* 低调的表头设计 */
   table.table-helper tr:first-child {
     font-weight: 500;
     background-color: #fafbfc;
@@ -78,7 +77,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
     border-bottom: none;
   }
   
-  /* 通用焦点样式 */
   table.table-helper td:focus {
     background-color: #eff6ff;
     outline: 2px solid #3b82f6;
@@ -87,7 +85,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
     z-index: 1;
   }
   
-  /* 左上角单元格的圆角 */
   table.table-helper tr:first-child td:first-child {
     border-top-left-radius: 11px;
   }
@@ -96,7 +93,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
     border-top-left-radius: 11px;
   }
   
-  /* 右上角单元格的圆角 */
   table.table-helper tr:first-child td:last-child {
     border-top-right-radius: 11px;
   }
@@ -105,7 +101,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
     border-top-right-radius: 11px;
   }
   
-  /* 左下角单元格的圆角 */
   table.table-helper tr:last-child td:first-child {
     border-bottom-left-radius: 11px;
   }
@@ -114,7 +109,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
     border-bottom-left-radius: 11px;
   }
   
-  /* 右下角单元格的圆角 */
   table.table-helper tr:last-child td:last-child {
     border-bottom-right-radius: 11px;
   }
@@ -189,7 +183,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
   }
   
-  /* 深色模式低调表头 */
   .dark table.table-helper tr:first-child {
     background-color: #242c3a;
     color: #9ca3af;
@@ -257,7 +250,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
     border-color: #3b82f6;
   }
 
-  /* --- 全新 Tippy.js 气泡菜单设计 --- */
   .tippy-box[data-theme~='custom'] {
     background-color: #ffffff;
     color: #1f2937;
@@ -295,7 +287,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
     padding: 4px;
   }
   
-  /* Tippy 按钮样式 - 现代卡片风格 */
   .tippy-button {
     border: none;
     background-color: transparent;
@@ -380,7 +371,7 @@ export default function computeCSS(edgeButtonSize: number): Element {
     color: #60a5fa;
   }
 
-  /* --- Common, Optimized Styles --- */
+  /* --- Common Styles --- */
   .table-helper-operate-button {
     z-index: 3;
     opacity: 0.5;
@@ -425,7 +416,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
     height: 18px;
   }
   
-  /* 对齐选项网格布局 */
   .alignment-options {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
