@@ -122,6 +122,11 @@ export default class TableEditor {
     private _tippyInstance: TippyInstance | null = null;
 
     /**
+     * Tracks pending blur operations to avoid conflicts
+     */
+    private _pendingBlur: number | null = null;
+
+    /**
      * Creates a new TableHelper.
      *
      * @param {string[][]}         ast          The table AST
@@ -141,6 +146,7 @@ export default class TableEditor {
         this._colAlignment = alignments
         this._edgeButtonSize = TABLE_SIZING.EDGE_BUTTON_SIZE
         this._isClean = true
+        this._pendingBlur = null
 
         // Find the container element
         if ('container' in options && options.container instanceof HTMLElement) {
@@ -494,27 +500,34 @@ export default class TableEditor {
             return // Ignore events
         }
 
+        // Cancel any pending blur operation
+        if (this._pendingBlur !== null) {
+            clearTimeout(this._pendingBlur);
+            this._pendingBlur = null;
+        }
+
         const col = cell.cellIndex
         const row = (cell.parentElement as HTMLTableRowElement).rowIndex
 
         // Re-render the table element and save the textContent as data-source
-        this._ast[row][col] = cell.textContent ?? ''
-        cell.innerHTML = md2html(this._ast[row][col])
-        // For a short amount of time, the table won't have any focused
-        // elements, so we'll set a small timeout, after which we test
-        // if any element inside the table has in the meantime received
-        // focus.
-        setTimeout(() => {
+        const newContent = cell.textContent ?? '';
+        this._ast[row][col] = newContent;
+        cell.innerHTML = md2html(newContent);
+
+        this._signalContentChange();
+
+        this._pendingBlur = window.setTimeout(() => {
+            this._pendingBlur = null;
             const activeElement = document.activeElement;
 
-            if (!activeElement || !activeElement.closest('table.table-helper')) {
-                // If we are here, focus has truly left ALL table editors.
-                // It's a good idea to update any content now!
+            const isInCurrentTable = activeElement && this._elem.contains(activeElement);
+
+            if (!isInCurrentTable) {
                 if (this._options.onBlur !== undefined) {
                     this._options.onBlur(this);
                 }
             }
-        }, 10)
+        }, 50);
     }
 
     /**
@@ -525,6 +538,12 @@ export default class TableEditor {
     _onCellFocus(cell: HTMLTableCellElement): void {
         if (this._eventLock) {
             return // Ignore events
+        }
+
+        // Cancel any pending blur operation since we're focusing on this table
+        if (this._pendingBlur !== null) {
+            clearTimeout(this._pendingBlur);
+            this._pendingBlur = null;
         }
 
         // As soon as any cell is focused, recalculate

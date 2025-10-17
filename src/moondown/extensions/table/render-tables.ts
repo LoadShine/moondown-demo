@@ -3,7 +3,6 @@ import {WidgetType, EditorView, Decoration, type DecorationSet} from '@codemirro
 import { StateField, EditorState } from '@codemirror/state'
 import { syntaxTree } from '@codemirror/language'
 import type {SyntaxNode, SyntaxNodeRef} from "@lezer/common";
-import { debounce } from 'lodash';
 import {tablePositions, updateTablePosition} from "./table-position.ts";
 import TableEditor from "./table-editor.ts";
 import {parseNode} from "./table-functions.ts";
@@ -13,6 +12,7 @@ class TableWidget extends WidgetType {
     private static nextId = 0;
     private readonly widgetId: number;
     private domElement: HTMLElement | null = null;
+    private saveInProgress = false;
 
     constructor(
         readonly table: string,
@@ -34,9 +34,9 @@ class TableWidget extends WidgetType {
     toDOM(view: EditorView): HTMLElement {
         try {
             const tableEditor = fromSyntaxNode(this.node, view.state.sliceDoc(), {
-                onBlur: debounce((instance: TableEditor) => {
+                onBlur: (instance: TableEditor) => {
                     this.saveContent(view, instance);
-                }, 300),
+                },
                 saveIntent: (instance: TableEditor) => {
                     this.saveContent(view, instance);
                 },
@@ -57,50 +57,76 @@ class TableWidget extends WidgetType {
     }
 
     private saveContent(view: EditorView, instance: TableEditor) {
-        const newContent = instance.getMarkdownTable();
-
-        const positions = view.state.field(tablePositions, false);
-        let actualFrom = this.originalFrom;
-        let actualTo = this.originalTo;
-
-        if (positions) {
-            const storedPos = positions.get(this.widgetId);
-            if (storedPos) {
-                actualFrom = storedPos.from;
-                actualTo = storedPos.to;
-            }
-        }
-
-        if (!this.isPositionValid(view.state, actualFrom, actualTo)) {
-            const foundPos = this.findTablePositionByDOM(view);
-            if (foundPos) {
-                actualFrom = foundPos.from;
-                actualTo = foundPos.to;
-            } else {
-                console.error('Cannot find table position, aborting save');
-                return;
-            }
-        }
-
-        if (actualFrom < 0 || actualTo > view.state.doc.length || actualFrom >= actualTo) {
-            console.error('Invalid table position:', { actualFrom, actualTo, docLength: view.state.doc.length });
+        if (this.saveInProgress) {
+            console.log('Save already in progress for table', this.widgetId);
             return;
         }
 
-        view.dispatch({
-            changes: {
+        this.saveInProgress = true;
+
+        try {
+            const newContent = instance.getMarkdownTable();
+
+            const positions = view.state.field(tablePositions, false);
+            let actualFrom = this.originalFrom;
+            let actualTo = this.originalTo;
+
+            if (positions) {
+                const storedPos = positions.get(this.widgetId);
+                if (storedPos) {
+                    actualFrom = storedPos.from;
+                    actualTo = storedPos.to;
+                }
+            }
+
+            if (!this.isPositionValid(view.state, actualFrom, actualTo)) {
+                console.log('Position invalid, trying to find by DOM for table', this.widgetId);
+                const foundPos = this.findTablePositionByDOM(view);
+                if (foundPos) {
+                    actualFrom = foundPos.from;
+                    actualTo = foundPos.to;
+                } else {
+                    console.error('Cannot find table position, aborting save for table', this.widgetId);
+                    return;
+                }
+            }
+
+            if (actualFrom < 0 || actualTo > view.state.doc.length || actualFrom >= actualTo) {
+                console.error('Invalid table position:', {
+                    widgetId: this.widgetId,
+                    actualFrom,
+                    actualTo,
+                    docLength: view.state.doc.length
+                });
+                return;
+            }
+
+            console.log('Saving table content:', {
+                widgetId: this.widgetId,
                 from: actualFrom,
                 to: actualTo,
-                insert: newContent,
-            },
-            effects: updateTablePosition.of({
-                id: this.widgetId,
-                from: actualFrom,
-                to: actualFrom + newContent.length,
-            }),
-        });
+                contentLength: newContent.length
+            });
 
-        instance.markClean();
+            view.dispatch({
+                changes: {
+                    from: actualFrom,
+                    to: actualTo,
+                    insert: newContent,
+                },
+                effects: updateTablePosition.of({
+                    id: this.widgetId,
+                    from: actualFrom,
+                    to: actualFrom + newContent.length,
+                }),
+            });
+
+            instance.markClean();
+        } catch (error) {
+            console.error('Error saving table content:', error);
+        } finally {
+            this.saveInProgress = false;
+        }
     }
 
     private isPositionValid(state: EditorState, from: number, to: number): boolean {
