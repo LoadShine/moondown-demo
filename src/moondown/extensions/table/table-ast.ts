@@ -2,8 +2,13 @@
 import { type SyntaxNode } from '@lezer/common'
 import { parseTableNode } from './parse-table-node.ts'
 import { parseChildren } from './parse-children.ts'
-import {getWhitespaceBeforeNode} from "./table-functions.ts";
-import {markdownLanguage} from "@codemirror/lang-markdown";
+import { getWhitespaceBeforeNode } from "./table-functions.ts"
+import { markdown } from "@codemirror/lang-markdown"
+import { languages } from "@codemirror/language-data"
+import { GFM } from "@lezer/markdown"
+import { Mark } from "../mark-parser"
+import { Underline } from "../underline-parser"
+import { Strikethrough } from "../strikethrough-parser"
 
 /**
  * Basic info every ASTNode needs to provide
@@ -145,8 +150,15 @@ export function parseNode (node: SyntaxNode, markdown: string): ASTNode {
     }
 }
 
+// Create a markdown parser with all extensions enabled
+const markdownWithExtensions = markdown({
+    codeLanguages: languages,
+    extensions: [GFM, Mark, Underline, Strikethrough],
+    addKeymap: false,
+})
+
 export function markdownToAST (markdown: string): ASTNode {
-    const { parser } = markdownLanguage
+    const { parser } = markdownWithExtensions.language
     const tree = parser.parse(markdown)
     return parseNode(tree.topNode, markdown)
 }

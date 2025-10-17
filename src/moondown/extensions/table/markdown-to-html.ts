@@ -42,6 +42,16 @@ function getTagInfo (node: GenericNode): HTMLTag {
         ret.tagName = 'p'
     } else if (node.name === 'FencedCode' || node.name === 'InlineCode') {
         ret.tagName = 'code'
+    } else if (node.name === 'Emphasis') {
+        ret.tagName = 'em'
+    } else if (node.name === 'StrongEmphasis') {
+        ret.tagName = 'strong'
+    } else if (node.name === 'Strikethrough') {
+        ret.tagName = 'del'
+    } else if (node.name === 'Mark') {
+        ret.tagName = 'mark'
+    } else if (node.name === 'Underline') {
+        ret.tagName = 'u'
     } else if (node.children.length === 1) {
         ret.tagName = 'span'
     }
@@ -57,7 +67,6 @@ function getTagInfo (node: GenericNode): HTMLTag {
  * Takes a Markdown AST node and turns it to an HTML string
  *
  * @param   {ASTNode}  node         The node
- * @param   {Function} getCitation  The callback for the citations
  * @param   {number}   indent       The indentation for this node
  *
  * @return  {string}                The HTML string
@@ -103,6 +112,11 @@ function nodeToHTML (node: ASTNode|ASTNode[], indent: number = 0): string {
     } else if (node.type === 'Text') {
         return node.whitespaceBefore + node.value // Plain text
     } else if (node.type === 'Generic') {
+        // Skip rendering marker nodes (StrikethroughMarker, MarkMarker, UnderlineMarker)
+        if (node.name === 'StrikethroughMarker' || node.name === 'MarkMarker' || node.name === 'UnderlineMarker') {
+            return '' // Don't render the markers themselves
+        }
+
         // Generic nodes are differentiated by name. There are a few we can support,
         // but most we wrap in a div.
         const tagInfo = getTagInfo(node)

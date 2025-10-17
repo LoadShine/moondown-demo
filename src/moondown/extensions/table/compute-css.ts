@@ -1,13 +1,4 @@
 // src/moondown/extensions/table/compute-css.ts
-
-/**
- * CSS style generator for table helper functionality
- *
- * This module generates dynamic CSS styles for the table editing interface,
- * including styling for table cells, operation buttons, and contextual menus.
- * It supports both light and dark themes with responsive design.
- */
-
 /**
  * Generates CSS styles for table helper interface
  *
@@ -59,6 +50,32 @@ export default function computeCSS(edgeButtonSize: number): Element {
     background-color: #e6f7ff;
     outline: none;
   }
+  
+  /* Formatting styles for table content */
+  table.table-helper td em {
+    font-style: italic;
+  }
+  table.table-helper td strong {
+    font-weight: bold;
+  }
+  table.table-helper td code {
+    background-color: #f5f5f5;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+  }
+  table.table-helper td del {
+    text-decoration: line-through;
+  }
+  table.table-helper td mark {
+    background-color: #ffeb3b;
+    padding: 2px 0;
+  }
+  table.table-helper td u {
+    text-decoration: underline;
+  }
+  
   .table-helper-operate-button {
     background-color: #fff;
     color: #4d5d75;
@@ -84,6 +101,17 @@ export default function computeCSS(edgeButtonSize: number): Element {
   .dark table.table-helper td:focus {
     background-color: #4a5568;
   }
+  
+  /* Dark mode formatting styles */
+  .dark table.table-helper td code {
+    background-color: #1a202c;
+    color: #e2e8f0;
+  }
+  .dark table.table-helper td mark {
+    background-color: #975a16;
+    color: #fef3c7;
+  }
+  
   .dark .table-helper-operate-button {
     background-color: #2d3748;
     color: #e2e8f0;
