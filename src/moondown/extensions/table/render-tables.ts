@@ -25,10 +25,7 @@ class TableWidget extends WidgetType {
     }
 
     eq(other: TableWidget): boolean {
-        return (
-            this.table === other.table &&
-            this.widgetId === other.widgetId
-        );
+        return this.table === other.table;
     }
 
     toDOM(view: EditorView): HTMLElement {
