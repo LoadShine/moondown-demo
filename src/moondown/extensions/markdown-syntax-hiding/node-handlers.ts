@@ -49,48 +49,47 @@ function getDecorationType(isSelected: boolean, isHidingEnabled: boolean): Decor
  */
 export function handleFencedCode(ctx: HandlerContext): DecorationItem[] {
     const { state, isSelected, isHidingEnabled, start, end } = ctx;
-    const decorations: DecorationItem[] = [];
 
     if (isSelected || !isHidingEnabled) {
-        return decorations;
+        return [];
     }
 
+    const decorations: DecorationItem[] = [];
     const fencedCodeStart = state.doc.lineAt(start);
     const fencedCodeEnd = state.doc.lineAt(end);
 
     if (fencedCodeStart.number === fencedCodeEnd.number) {
-        return decorations;
+        return [];
     }
 
     const openingMatch = fencedCodeStart.text.match(/^(\s*(?:>\s*)?)(```+)(\w*)/);
-
     if (openingMatch) {
-        const prefix = openingMatch[1];
+        const prefix = openingMatch[1] || '';
         const backticks = openingMatch[2];
         const language = openingMatch[3];
 
-        const hideStart = fencedCodeStart.from + prefix.length;
-        const hideEnd = hideStart + backticks.length + language.length;
+        const replaceStart = fencedCodeStart.from + prefix.length;
+        const replaceEnd = replaceStart + backticks.length + language.length;
 
         decorations.push({
-            from: hideStart,
-            to: hideEnd,
-            decoration: hiddenMarkdown
+            from: replaceStart,
+            to: replaceEnd,
+            decoration: Decoration.replace({})
         });
     }
 
     const closingMatch = fencedCodeEnd.text.match(/^(\s*(?:>\s*)?)(```+)/);
     if (closingMatch) {
-        const prefix = closingMatch[1];
+        const prefix = closingMatch[1] || '';
         const backticks = closingMatch[2];
 
-        const hideStart = fencedCodeEnd.from + prefix.length;
-        const hideEnd = hideStart + backticks.length;
+        const replaceStart = fencedCodeEnd.from + prefix.length;
+        const replaceEnd = replaceStart + backticks.length;
 
         decorations.push({
-            from: hideStart,
-            to: hideEnd,
-            decoration: hiddenMarkdown
+            from: replaceStart,
+            to: replaceEnd,
+            decoration: Decoration.replace({})
         });
     }
 
