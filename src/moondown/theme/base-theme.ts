@@ -240,6 +240,13 @@ const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) 
             zIndex: -1,
         },
 
+        ".cm-blockquote-line[data-bq-level].cm-fenced-code::before": {
+            left: "calc(var(--bq-padding-base) + (var(--data-bq-level, 1) - 1) * (var(--bq-bar-width) + var(--bq-bar-gap)) + var(--bq-bar-width) + var(--bq-text-gap))",
+            right: "8px",
+            top: 0,
+            bottom: 0,
+        },
+
         // List styling
         ".cm-bullet-list": { color: colors.marker, fontWeight: "bold" },
         ".cm-ordered-list-marker, .cm-ordered-list-marker > span": {
