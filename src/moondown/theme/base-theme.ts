@@ -24,8 +24,13 @@ const light = {
     codeBackground: "#1A202C",
     codeText: "#E2E8F0",
     codeSecondaryText: "#A0AEC0",
-    widgetBackground: "#fef7f7",
-    blockquoteBorder: "#FF69B4",
+
+    // Blockquote Colors
+    blockquoteColor1: "#cbd5e1", // Level 1
+    blockquoteColor2: "#94a3b8", // Level 2
+    blockquoteColor3: "#64748b", // Level 3
+    blockquoteColorDeep: "#4b5563", // Level 4+ (a darker gray)
+
     inlineCodeBg: "#EDF2F7",
     slashCommandBg: "#ffffff",
     slashCommandBorder: "#e0e0e0",
@@ -56,8 +61,13 @@ const dark = {
     codeBackground: "#2D3748",
     codeText: "#E2E8F0",
     codeSecondaryText: "#A0AEC0",
-    widgetBackground: "#2D3748",
-    blockquoteBorder: "#FFA7C4",
+
+    // Blockquote Colors
+    blockquoteColor1: "#475569", // Level 1
+    blockquoteColor2: "#64748b", // Level 2
+    blockquoteColor3: "#94a3b8", // Level 3
+    blockquoteColorDeep: "#cbd5e1", // Level 4+ (a lighter gray)
+
     inlineCodeBg: "#2D3748",
     slashCommandBg: "#2D3748",
     slashCommandBorder: "#4A5568",
@@ -69,7 +79,7 @@ const dark = {
 
 const codeFont = "'Fira Code', 'Roboto Mono', monospace";
 
-// --- Base Theme Structure (used by both light and dark) ---
+// --- Base Theme Structure ---
 const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) => {
     const animationName = isDark ? 'colorChangeDark' : 'colorChangeLight';
 
@@ -77,6 +87,16 @@ const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) 
         "&": {
             color: colors.primaryText,
             backgroundColor: colors.background,
+            // Define CSS variables for blockquote styling
+            "--bq-bar-width": "3px",
+            "--bq-bar-gap": "12px",
+            "--bq-padding-base": "12px",
+            "--bq-text-gap": "16px",
+            "--bq-border-radius": "8px",
+            "--bq-color-1": colors.blockquoteColor1,
+            "--bq-color-2": colors.blockquoteColor2,
+            "--bq-color-3": colors.blockquoteColor3,
+            "--bq-color-deep": colors.blockquoteColorDeep,
         },
         "&.cm-focused": {
             outline: "none",
@@ -152,14 +172,55 @@ const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) 
         },
         ".cm-hr-line-selected .cm-visible-markdown": { color: colors.secondaryText },
 
-        // Blockquote styling
-        ".cm-blockquote-line, .cm-blockquote-line-selected": {
+        ".cm-blockquote-line": {
+            backgroundRepeat: "no-repeat",
             position: "relative",
-            backgroundColor: colors.widgetBackground,
-            borderLeft: `4px solid ${colors.blockquoteBorder}`,
-            paddingLeft: "16px",
-            fontStyle: "italic",
         },
+
+        ".cm-blockquote-first-line::before, .cm-blockquote-last-line::after": {
+            content: '""',
+            position: "absolute",
+            width: "var(--bq-bar-width)",
+            height: "var(--bq-border-radius)",
+            left: "var(--bq-padding-base)",
+            backgroundColor: "var(--bq-color-1)",
+        },
+        ".cm-blockquote-first-line::before": {
+            top: 0,
+            borderTopLeftRadius: "var(--bq-border-radius)",
+        },
+        ".cm-blockquote-last-line::after": {
+            bottom: 0,
+            borderBottomLeftRadius: "var(--bq-border-radius)",
+        },
+
+        ".cm-blockquote-line[data-bq-level]": {
+            paddingLeft: "calc(var(--bq-padding-base) + (var(--data-bq-level, 1) - 1) * (var(--bq-bar-width) + var(--bq-bar-gap)) + var(--bq-bar-width) + var(--bq-text-gap))",
+        },
+        ...(() => {
+            const styles: { [selector: string]: any } = {};
+            const MAX_UNIQUE_COLORS = 3;
+            for (let i = 1; i <= 10; i++) {
+                const gradients = [];
+                const positions = [];
+                for (let j = 1; j <= i; j++) {
+                    const colorVar = j <= MAX_UNIQUE_COLORS ? `var(--bq-color-${j})` : 'var(--bq-color-deep)';
+                    gradients.push(`linear-gradient(${colorVar}, ${colorVar})`);
+
+                    const position = j === 1
+                        ? 'var(--bq-padding-base) 0'
+                        : `calc(var(--bq-padding-base) + (${j - 1}) * (var(--bq-bar-width) + var(--bq-bar-gap))) 0`;
+                    positions.push(position);
+                }
+                styles[`.cm-blockquote-line[data-bq-level='${i}']`] = {
+                    '--data-bq-level': i,
+                    backgroundImage: gradients.join(', '),
+                    backgroundSize: Array(i).fill('var(--bq-bar-width) 100%').join(', '),
+                    backgroundPosition: positions.join(', '),
+                };
+            }
+            return styles;
+        })(),
 
         // Code block styling
         ".cm-fenced-code": {
@@ -316,7 +377,6 @@ const createHighlightStyle = (colors: typeof light | typeof dark) => HighlightSt
     {tag: tags.heading1, fontWeight: "800", fontSize: "2em", color: colors.primaryText},
     {tag: tags.heading2, fontWeight: "700", fontSize: "1.5em", color: colors.primaryText},
     {tag: tags.heading3, fontWeight: "600", fontSize: "1.17em", color: colors.primaryText},
-    // ... other heading levels
     {tag: tags.link, color: colors.lightBlue},
     {tag: tags.emphasis, fontStyle: "italic"},
     {tag: tags.strong, fontWeight: "bold"},
