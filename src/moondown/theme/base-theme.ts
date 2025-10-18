@@ -21,15 +21,27 @@ const light = {
     teal: "#38B2AC",
     indigo: "#667EEA",
     marker: "#718096",
-    codeBackground: "#1A202C",
-    codeText: "#E2E8F0",
-    codeSecondaryText: "#A0AEC0",
+    codeBackground: "#F7FAFC",
+    codeText: "#2D3748",
+    codeSecondaryText: "#718096",
+
+    // Code syntax highlighting colors
+    codeKeyword: "#0066CC",      // Deep blue - Keywords
+    codeString: "#097969",       // Deep green - Strings
+    codeNumber: "#C05621",       // Orange-brown - Numbers
+    codeComment: "#6B7280",      // Gray - Comments
+    codeFunction: "#7C3AED",     // Purple - Functions
+    codeVariable: "#1F2937",     // Dark gray - Variables
+    codeOperator: "#374151",     // Medium gray - Operators
+    codeTag: "#DC2626",          // Red - Tags
+    codeAttribute: "#0891B2",    // Cyan - Attributes
+    codeType: "#CA8A04",         // Gold - Types
 
     // Blockquote Colors
-    blockquoteColor1: "#cbd5e1", // Level 1
-    blockquoteColor2: "#94a3b8", // Level 2
-    blockquoteColor3: "#64748b", // Level 3
-    blockquoteColorDeep: "#4b5563", // Level 4+ (a darker gray)
+    blockquoteColor1: "#cbd5e1",
+    blockquoteColor2: "#94a3b8",
+    blockquoteColor3: "#64748b",
+    blockquoteColorDeep: "#4b5563",
 
     inlineCodeBg: "#EDF2F7",
     slashCommandBg: "#ffffff",
@@ -58,15 +70,27 @@ const dark = {
     teal: "#4FD1C5",
     indigo: "#7F9CF5",
     marker: "#A0AEC0",
-    codeBackground: "#2D3748",
+    codeBackground: "#0F1419",
     codeText: "#E2E8F0",
     codeSecondaryText: "#A0AEC0",
 
+    // Code syntax highlighting colors (Dark theme)
+    codeKeyword: "#60A5FA",      // Bright blue - Keywords
+    codeString: "#6EE7B7",       // Emerald green - Strings
+    codeNumber: "#FCA5A5",       // Light red - Numbers
+    codeComment: "#9CA3AF",      // Gray - Comments
+    codeFunction: "#C084FC",     // Light purple - Functions
+    codeVariable: "#E5E7EB",     // Light gray - Variables
+    codeOperator: "#D1D5DB",     // Medium light gray - Operators
+    codeTag: "#F87171",          // Light red - Tags
+    codeAttribute: "#22D3EE",    // Cyan - Attributes
+    codeType: "#FCD34D",         // Yellow - Types
+
     // Blockquote Colors
-    blockquoteColor1: "#475569", // Level 1
-    blockquoteColor2: "#64748b", // Level 2
-    blockquoteColor3: "#94a3b8", // Level 3
-    blockquoteColorDeep: "#cbd5e1", // Level 4+ (a lighter gray)
+    blockquoteColor1: "#475569",
+    blockquoteColor2: "#64748b",
+    blockquoteColor3: "#94a3b8",
+    blockquoteColorDeep: "#cbd5e1",
 
     inlineCodeBg: "#2D3748",
     slashCommandBg: "#2D3748",
@@ -387,31 +411,31 @@ const createHighlightStyle = (colors: typeof light | typeof dark) => HighlightSt
     {tag: tags.link, color: colors.lightBlue},
     {tag: tags.emphasis, fontStyle: "italic"},
     {tag: tags.strong, fontWeight: "bold"},
-    {tag: tags.keyword, color: colors.purple, fontFamily: codeFont},
-    {tag: tags.atom, color: colors.pink, fontFamily: codeFont},
-    {tag: tags.bool, color: colors.pink, fontFamily: codeFont},
-    {tag: tags.url, color: colors.green, fontFamily: codeFont},
-    {tag: tags.labelName, color: colors.red, fontFamily: codeFont},
-    {tag: tags.inserted, color: colors.green, fontFamily: codeFont},
-    {tag: tags.deleted, color: colors.red, fontFamily: codeFont},
-    {tag: tags.literal, color: colors.pink, fontFamily: codeFont},
-    {tag: tags.string, color: colors.green, fontFamily: codeFont},
-    {tag: tags.number, color: colors.pink, fontFamily: codeFont},
-    {tag: [tags.regexp, tags.escape, tags.special(tags.string)], color: colors.pink, fontFamily: codeFont},
-    {tag: tags.definition(tags.propertyName), color: colors.teal, fontFamily: codeFont},
-    {tag: tags.function(tags.variableName), color: colors.indigo, fontFamily: codeFont},
-    {tag: tags.typeName, color: colors.yellow, fontFamily: codeFont},
-    {tag: tags.className, color: colors.yellow, fontFamily: codeFont},
-    {tag: tags.comment, color: colors.secondaryText, fontStyle: "italic", fontFamily: codeFont},
-    {tag: tags.meta, color: colors.purple, fontFamily: codeFont},
-    {tag: tags.invalid, color: colors.red, fontFamily: codeFont},
-    {tag: tags.variableName, color: colors.indigo, fontFamily: codeFont},
-    {tag: tags.operator, color: colors.purple, fontFamily: codeFont},
-    {tag: tags.punctuation, color: colors.primaryText, fontFamily: codeFont},
-    {tag: tags.bracket, color: colors.primaryText, fontFamily: codeFont},
-    {tag: tags.tagName, color: colors.red, fontFamily: codeFont},
-    {tag: tags.attributeName, color: colors.teal, fontFamily: codeFont},
-    {tag: tags.attributeValue, color: colors.green, fontFamily: codeFont},
+    {tag: tags.keyword, color: colors.codeKeyword, fontFamily: codeFont},
+    {tag: tags.atom, color: colors.codeNumber, fontFamily: codeFont},
+    {tag: tags.bool, color: colors.codeNumber, fontFamily: codeFont},
+    {tag: tags.url, color: colors.codeString, fontFamily: codeFont},
+    {tag: tags.labelName, color: colors.codeTag, fontFamily: codeFont},
+    {tag: tags.inserted, color: colors.codeString, fontFamily: codeFont},
+    {tag: tags.deleted, color: colors.codeTag, fontFamily: codeFont},
+    {tag: tags.literal, color: colors.codeNumber, fontFamily: codeFont},
+    {tag: tags.string, color: colors.codeString, fontFamily: codeFont},
+    {tag: tags.number, color: colors.codeNumber, fontFamily: codeFont},
+    {tag: [tags.regexp, tags.escape, tags.special(tags.string)], color: colors.codeNumber, fontFamily: codeFont},
+    {tag: tags.definition(tags.propertyName), color: colors.codeAttribute, fontFamily: codeFont},
+    {tag: tags.function(tags.variableName), color: colors.codeFunction, fontFamily: codeFont},
+    {tag: tags.typeName, color: colors.codeType, fontFamily: codeFont},
+    {tag: tags.className, color: colors.codeType, fontFamily: codeFont},
+    {tag: tags.comment, color: colors.codeComment, fontStyle: "italic", fontFamily: codeFont},
+    {tag: tags.meta, color: colors.codeKeyword, fontFamily: codeFont},
+    {tag: tags.invalid, color: colors.codeTag, fontFamily: codeFont},
+    {tag: tags.variableName, color: colors.codeVariable, fontFamily: codeFont},
+    {tag: tags.operator, color: colors.codeOperator, fontFamily: codeFont},
+    {tag: tags.punctuation, color: colors.codeOperator, fontFamily: codeFont},
+    {tag: tags.bracket, color: colors.codeOperator, fontFamily: codeFont},
+    {tag: tags.tagName, color: colors.codeTag, fontFamily: codeFont},
+    {tag: tags.attributeName, color: colors.codeAttribute, fontFamily: codeFont},
+    {tag: tags.attributeValue, color: colors.codeString, fontFamily: codeFont},
 ]);
 
 // --- Export Light Theme ---
