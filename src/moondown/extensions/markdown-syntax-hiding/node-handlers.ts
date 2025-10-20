@@ -1,6 +1,6 @@
 // src/moondown/extensions/markdown-syntax-hiding/node-handlers.ts
-import { EditorState, type SelectionRange } from '@codemirror/state';
-import { Decoration } from '@codemirror/view';
+import {EditorSelection, EditorState, type SelectionRange, StateEffect, StateField} from '@codemirror/state';
+import {Decoration, EditorView, WidgetType} from '@codemirror/view';
 import { LinkWidget } from "./link-widget";
 import { InlineCodeWidget, StrikethroughWidget, HighlightWidget, UnderlineWidget } from "./widgets";
 import { CSS_CLASSES } from "../../core";
@@ -253,33 +253,71 @@ export function handleHeading(ctx: HandlerContext, headerLevel: number): Decorat
 export function handleLink(ctx: HandlerContext): DecorationItem[] {
     const { state, isSelected, isHidingEnabled, start, end } = ctx;
     const linkText = state.doc.sliceString(start, end);
-    const linkMatch = linkText.match(/\[([^\]]+)\]\(([^)]+)\)/);
 
-    if (!linkMatch) return [];
+    // Try inline link first: [text](url)
+    const inlineMatch = linkText.match(/\[([^\]]+)\]\(([^)]+)\)/);
+    if (inlineMatch) {
+        const decorationType = getDecorationType(isSelected, isHidingEnabled);
+        const displayText = inlineMatch[1] || inlineMatch[2];
 
-    const decorationType = getDecorationType(isSelected, isHidingEnabled);
-    const displayText = linkMatch[1] || linkMatch[2];
+        if (!isSelected) {
+            return [{
+                from: start,
+                to: end,
+                decoration: Decoration.replace({
+                    widget: new LinkWidget(displayText, linkText, start),
+                    inclusive: true
+                })
+            }];
+        } else {
+            const linkStart = start + linkText.indexOf('[');
+            const linkEnd = start + linkText.indexOf(']') + 1;
+            const urlStart = start + linkText.indexOf('(');
+            const urlEnd = start + linkText.indexOf(')') + 1;
 
-    if (!isSelected) {
-        return [{
-            from: start,
-            to: end,
-            decoration: Decoration.replace({
-                widget: new LinkWidget(displayText, linkText, start),
-                inclusive: true
-            })
-        }];
-    } else {
-        const linkStart = start + linkText.indexOf('[');
-        const linkEnd = start + linkText.indexOf(']') + 1;
-        const urlStart = start + linkText.indexOf('(');
-        const urlEnd = start + linkText.indexOf(')') + 1;
-
-        return [
-            { from: linkStart, to: linkEnd, decoration: decorationType },
-            { from: urlStart, to: urlEnd, decoration: decorationType }
-        ];
+            return [
+                { from: linkStart, to: linkEnd, decoration: decorationType },
+                { from: urlStart, to: urlEnd, decoration: decorationType }
+            ];
+        }
     }
+
+    // Try reference-style link: [text][ref-id]
+    const refMatch = linkText.match(/\[([^\]]+)\]\[([^\]]+)\]/);
+    if (refMatch) {
+        const displayText = refMatch[1];
+        const refId = refMatch[2];
+        const decorationType = getDecorationType(isSelected, isHidingEnabled);
+
+        if (!isSelected) {
+            // Find the URL from the definition
+            const docText = state.doc.toString();
+            const defPattern = new RegExp(`^\\[${escapeRegExp(refId)}\\]:\\s*(.+)$`, 'mi');
+            const defMatch = docText.match(defPattern);
+            const url = defMatch ? defMatch[1].trim() : '';
+
+            return [{
+                from: start,
+                to: end,
+                decoration: Decoration.replace({
+                    widget: new LinkWidget(displayText, url || refId, start),
+                    inclusive: true
+                })
+            }];
+        } else {
+            const textStart = start;
+            const textEnd = start + refMatch[1].length + 2; // [text]
+            const refStart = textEnd;
+            const refEnd = end;
+
+            return [
+                { from: textStart, to: textEnd, decoration: decorationType },
+                { from: refStart, to: refEnd, decoration: decorationType }
+            ];
+        }
+    }
+
+    return [];
 }
 
 /**
@@ -386,4 +424,264 @@ export function handleImage(ctx: HandlerContext): DecorationItem[] {
         { from: start, to: start + 2, decoration: decorationType },
         { from: start + 2 + alt.length, to: end, decoration: decorationType }
     ];
+}
+
+/**
+ * Widget for link definitions (the [id]: url part)
+ */
+export class LinkDefinitionWidget extends WidgetType {
+    constructor(
+        private refId: string,
+        private url: string,
+        private fullText: string,
+        private start: number
+    ) {
+        super();
+    }
+
+    toDOM(view: EditorView): HTMLElement {
+        const container = document.createElement("span");
+        container.className = "cm-link-definition-widget";
+
+        // Create the reference ID part
+        const refSpan = document.createElement("span");
+        refSpan.textContent = this.refId;
+        refSpan.style.fontWeight = "600";
+
+        // Create a small URL preview (shortened if too long)
+        const urlPreview = document.createElement("span");
+        urlPreview.style.fontSize = "0.85em";
+        urlPreview.style.opacity = "0.6";
+        urlPreview.style.marginLeft = "8px";
+
+        // Shorten URL for display
+        let displayUrl = this.url;
+        if (displayUrl.length > 40) {
+            displayUrl = displayUrl.substring(0, 37) + "...";
+        }
+        urlPreview.textContent = `(${displayUrl})`;
+
+        container.appendChild(refSpan);
+        container.appendChild(urlPreview);
+
+        // Set title for full URL on hover
+        container.title = `Jump to reference: ${this.refId}\nURL: ${this.url}`;
+
+        container.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+
+            // Find the reference usage in the document
+            const docText = view.state.doc.toString();
+            const refPattern = new RegExp(`\\[([^\\]]+)\\]\\[${escapeRegExp(this.refId)}\\]`, 'gi');
+            const match = refPattern.exec(docText);
+
+            if (match) {
+                const targetPos = match.index;
+                const targetEnd = targetPos + match[0].length;
+
+                // Move cursor to the END of the reference (not select it)
+                view.dispatch({
+                    selection: EditorSelection.cursor(targetEnd),
+                    effects: [
+                        EditorView.scrollIntoView(targetEnd, { y: "center" }),
+                        // Add a special effect to mark this as a programmatic jump
+                        addHighlightEffect.of({ from: targetPos, to: targetEnd, timestamp: Date.now() })
+                    ]
+                });
+            }
+        });
+
+        // Allow double-click to select the definition itself
+        container.addEventListener('click', (event) => {
+            if (event.detail === 2) {
+                event.preventDefault();
+                const end = this.start + this.fullText.length;
+                view.dispatch({
+                    selection: EditorSelection.single(this.start, end)
+                });
+            }
+        });
+
+        return container;
+    }
+
+    eq(other: LinkDefinitionWidget): boolean {
+        return (
+            other.refId === this.refId &&
+            other.url === this.url &&
+            other.fullText === this.fullText &&
+            other.start === this.start
+        );
+    }
+
+    ignoreEvent(event: Event): boolean {
+        return event.type === 'mousedown' || event.type === 'click';
+    }
+}
+
+/**
+ * State effect to trigger highlight
+ */
+const addHighlightEffect = StateEffect.define<{from: number, to: number, timestamp: number}>();
+
+/**
+ * Highlight info interface
+ */
+interface HighlightInfo {
+    from: number;
+    to: number;
+    timestamp: number;
+}
+
+/**
+ * State field to manage temporary highlights from reference jumps
+ */
+export const referenceHighlightField = StateField.define<HighlightInfo | null>({
+    create() {
+        return null;
+    },
+
+    update(highlight, tr) {
+        // Check for new highlight effects
+        for (const effect of tr.effects) {
+            if (effect.is(addHighlightEffect)) {
+                return effect.value;
+            }
+        }
+
+        // If we have an active highlight, check if it should expire
+        if (highlight) {
+            const elapsed = Date.now() - highlight.timestamp;
+            if (elapsed >= 2000) {
+                return null; // Clear expired highlight
+            }
+        }
+
+        // Map position through changes
+        if (highlight && tr.docChanged) {
+            return {
+                from: tr.changes.mapPos(highlight.from),
+                to: tr.changes.mapPos(highlight.to),
+                timestamp: highlight.timestamp
+            };
+        }
+
+        return highlight;
+    },
+
+    provide: f => EditorView.decorations.from(f, highlight => {
+        if (!highlight) return Decoration.none;
+
+        // Check if highlight should still be visible
+        const elapsed = Date.now() - highlight.timestamp;
+        if (elapsed >= 2000) {
+            return Decoration.none;
+        }
+
+        const deco = Decoration.mark({
+            class: "cm-reference-highlight"
+        }).range(highlight.from, highlight.to);
+
+        return Decoration.set([deco]);
+    })
+});
+
+/**
+ * View plugin to periodically check and clear expired highlights
+ */
+export const highlightCleanupPlugin = EditorView.updateListener.of((update) => {
+    const highlight = update.state.field(referenceHighlightField, false);
+
+    if (highlight) {
+        const elapsed = Date.now() - highlight.timestamp;
+
+        // If highlight is about to expire, schedule a view update to clear it
+        if (elapsed >= 2000 && elapsed < 2100) {
+            setTimeout(() => {
+                // Force a re-render by dispatching an empty transaction
+                if (update.view.state.field(referenceHighlightField, false)) {
+                    update.view.dispatch({});
+                }
+            }, 100);
+        }
+    }
+});
+
+// Helper function for escaping regex
+function escapeRegExp(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Handles link definition lines: [id]: url
+ */
+export function handleLinkDefinition(ctx: HandlerContext): DecorationItem[] {
+    const { state, isSelected, start, end } = ctx;
+    const line = state.doc.lineAt(start);
+    const lineText = line.text;
+
+    // Match link definition: [ref-id]: url (optional "title")
+    const match = lineText.match(/^\[([^\]]+)\]:\s*(\S+)(?:\s+"([^"]*)")?/);
+
+    if (!match) return [];
+
+    const refId = match[1];
+    const url = match[2];
+    const fullText = lineText;
+
+    const decorations: DecorationItem[] = [];
+
+    // Add line decoration for visual distinction
+    decorations.push({
+        from: line.from,
+        to: line.from,
+        decoration: Decoration.line({
+            class: 'cm-link-definition-line'
+        })
+    });
+
+    if (!isSelected) {
+        // Replace the entire line with a nicely styled widget
+        return [
+            ...decorations,
+            {
+                from: start,
+                to: end,
+                decoration: Decoration.replace({
+                    widget: new LinkDefinitionWidget(refId, url, fullText, start),
+                    inclusive: true
+                })
+            }
+        ];
+    } else {
+        // When selected, show syntax with highlighting
+        const colonPos = line.from + lineText.indexOf(':');
+        const urlMatch = lineText.slice(lineText.indexOf(':') + 1).match(/\s*(\S+)/);
+
+        if (urlMatch) {
+            const urlStartOffset = lineText.indexOf(':', lineText.indexOf(']')) + 1 + urlMatch.index!;
+            const urlEnd = line.from + urlStartOffset + urlMatch[1].length;
+
+            decorations.push(
+                // Highlight the [ref-id]: part
+                {
+                    from: line.from,
+                    to: colonPos + 1,
+                    decoration: Decoration.mark({
+                        class: 'cm-visible-markdown'
+                    })
+                },
+                // Style the URL part
+                {
+                    from: line.from + urlStartOffset,
+                    to: urlEnd,
+                    decoration: Decoration.mark({
+                        class: 'cm-link-definition-url'
+                    })
+                }
+            );
+        }
+
+        return decorations;
+    }
 }

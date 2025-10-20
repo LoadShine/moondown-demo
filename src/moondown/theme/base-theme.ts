@@ -176,6 +176,61 @@ const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) 
         ".cm-hidden-markdown": { display: "none" },
         ".cm-visible-markdown": { color: colors.secondaryText, opacity: "0.8" },
 
+        ".cm-link-definition-widget": {
+            color: colors.secondaryText,
+            fontFamily: codeFont,
+            fontSize: "0.9em",
+            padding: "2px 6px",
+            borderRadius: "4px",
+            background: colors.inlineCodeBg,
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+            "&:hover": {
+                background: colors.lightBlue + "20",
+                color: colors.lightBlue,
+            }
+        },
+
+        ".cm-reference-highlight": {
+            animation: `${isDark ? 'referenceHighlightDark' : 'referenceHighlightLight'} 2s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+            borderRadius: "4px",
+            padding: "2px 0",
+        },
+
+        [`@keyframes referenceHighlightLight`]: {
+            "0%": {
+                backgroundColor: colors.yellow + "80",
+                boxShadow: `0 0 0 3px ${colors.yellow}50`,
+                transform: "scale(1.02)"
+            },
+            "50%": {
+                backgroundColor: colors.yellow + "60",
+                boxShadow: `0 0 0 2px ${colors.yellow}30`
+            },
+            "100%": {
+                backgroundColor: "transparent",
+                boxShadow: "0 0 0 0 transparent",
+                transform: "scale(1)"
+            },
+        },
+
+        [`@keyframes referenceHighlightDark`]: {
+            "0%": {
+                backgroundColor: colors.yellow + "60",
+                boxShadow: `0 0 0 3px ${colors.yellow}40`,
+                transform: "scale(1.02)"
+            },
+            "50%": {
+                backgroundColor: colors.yellow + "40",
+                boxShadow: `0 0 0 2px ${colors.yellow}20`
+            },
+            "100%": {
+                backgroundColor: "transparent",
+                boxShadow: "0 0 0 0 transparent",
+                transform: "scale(1)"
+            },
+        },
+
         // Horizontal Rule Styling
         ".cm-hr-line": {
             position: "relative",

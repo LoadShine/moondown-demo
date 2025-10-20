@@ -16,7 +16,7 @@ import {
     handleStrikethrough,
     handleMark,
     handleUnderline,
-    handleImage
+    handleImage, handleLinkDefinition
 } from "./node-handlers";
 
 /**
@@ -57,6 +57,7 @@ const NODE_HANDLERS: Record<string, NodeHandler> = {
     'Mark': handleMark,
     'Underline': handleUnderline,
     'Image': handleImage,
+    'LinkReference': handleLink, // Add this for reference-style links
 };
 
 /**
@@ -113,6 +114,22 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                         decorations.push(...handleBlockquote(ctx));
                     }
                     return;
+                }
+
+                // Check if this line is a link definition
+                const line = state.doc.lineAt(start);
+                const lineText = line.text;
+                if (/^\[([^\]]+)\]:\s*\S+/.test(lineText)) {
+                    const ctx: HandlerContext = {
+                        state,
+                        selection,
+                        isHidingEnabled,
+                        isSelected,
+                        start: line.from,
+                        end: line.to
+                    };
+                    decorations.push(...handleLinkDefinition(ctx));
+                    return false; // Skip children
                 }
 
                 // Handle other node types
