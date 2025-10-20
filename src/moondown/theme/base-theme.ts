@@ -347,6 +347,7 @@ const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) 
             textDecoration: "none",
             color: colors.lightBlue,
             borderBottom: `1px solid ${colors.lightBlue}`,
+            cursor: "pointer",
         },
         '.cm-image-widget': {
             display: 'flex',

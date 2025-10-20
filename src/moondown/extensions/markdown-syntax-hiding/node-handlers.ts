@@ -1,9 +1,10 @@
 // src/moondown/extensions/markdown-syntax-hiding/node-handlers.ts
-import {EditorSelection, EditorState, type SelectionRange, StateEffect, StateField} from '@codemirror/state';
+import {EditorSelection, EditorState, type SelectionRange} from '@codemirror/state';
 import {Decoration, EditorView, WidgetType} from '@codemirror/view';
 import { LinkWidget } from "./link-widget";
 import { InlineCodeWidget, StrikethroughWidget, HighlightWidget, UnderlineWidget } from "./widgets";
-import { CSS_CLASSES } from "../../core";
+import { CSS_CLASSES, escapeRegExp } from "../../core";
+import { addHighlightEffect } from "./highlight-effects";
 
 /**
  * Decoration types with explicit startSide values
@@ -251,13 +252,13 @@ export function handleHeading(ctx: HandlerContext, headerLevel: number): Decorat
  * Handles Link nodes
  */
 export function handleLink(ctx: HandlerContext): DecorationItem[] {
-    const { state, isSelected, isHidingEnabled, start, end } = ctx;
+    const { state, isSelected, start, end } = ctx;
     const linkText = state.doc.sliceString(start, end);
 
     // Try inline link first: [text](url)
     const inlineMatch = linkText.match(/\[([^\]]+)\]\(([^)]+)\)/);
     if (inlineMatch) {
-        const decorationType = getDecorationType(isSelected, isHidingEnabled);
+        const decorationType = getDecorationType(isSelected, true);
         const displayText = inlineMatch[1] || inlineMatch[2];
 
         if (!isSelected) {
@@ -287,20 +288,14 @@ export function handleLink(ctx: HandlerContext): DecorationItem[] {
     if (refMatch) {
         const displayText = refMatch[1];
         const refId = refMatch[2];
-        const decorationType = getDecorationType(isSelected, isHidingEnabled);
+        const decorationType = getDecorationType(isSelected, true);
 
         if (!isSelected) {
-            // Find the URL from the definition
-            const docText = state.doc.toString();
-            const defPattern = new RegExp(`^\\[${escapeRegExp(refId)}\\]:\\s*(.+)$`, 'mi');
-            const defMatch = docText.match(defPattern);
-            const url = defMatch ? defMatch[1].trim() : '';
-
             return [{
                 from: start,
                 to: end,
                 decoration: Decoration.replace({
-                    widget: new LinkWidget(displayText, url || refId, start),
+                    widget: new LinkWidget(displayText, linkText, start, refId),
                     inclusive: true
                 })
             }];
@@ -517,99 +512,6 @@ export class LinkDefinitionWidget extends WidgetType {
     ignoreEvent(event: Event): boolean {
         return event.type === 'mousedown' || event.type === 'click';
     }
-}
-
-/**
- * State effect to trigger highlight
- */
-const addHighlightEffect = StateEffect.define<{from: number, to: number, timestamp: number}>();
-
-/**
- * Highlight info interface
- */
-interface HighlightInfo {
-    from: number;
-    to: number;
-    timestamp: number;
-}
-
-/**
- * State field to manage temporary highlights from reference jumps
- */
-export const referenceHighlightField = StateField.define<HighlightInfo | null>({
-    create() {
-        return null;
-    },
-
-    update(highlight, tr) {
-        // Check for new highlight effects
-        for (const effect of tr.effects) {
-            if (effect.is(addHighlightEffect)) {
-                return effect.value;
-            }
-        }
-
-        // If we have an active highlight, check if it should expire
-        if (highlight) {
-            const elapsed = Date.now() - highlight.timestamp;
-            if (elapsed >= 2000) {
-                return null; // Clear expired highlight
-            }
-        }
-
-        // Map position through changes
-        if (highlight && tr.docChanged) {
-            return {
-                from: tr.changes.mapPos(highlight.from),
-                to: tr.changes.mapPos(highlight.to),
-                timestamp: highlight.timestamp
-            };
-        }
-
-        return highlight;
-    },
-
-    provide: f => EditorView.decorations.from(f, highlight => {
-        if (!highlight) return Decoration.none;
-
-        // Check if highlight should still be visible
-        const elapsed = Date.now() - highlight.timestamp;
-        if (elapsed >= 2000) {
-            return Decoration.none;
-        }
-
-        const deco = Decoration.mark({
-            class: "cm-reference-highlight"
-        }).range(highlight.from, highlight.to);
-
-        return Decoration.set([deco]);
-    })
-});
-
-/**
- * View plugin to periodically check and clear expired highlights
- */
-export const highlightCleanupPlugin = EditorView.updateListener.of((update) => {
-    const highlight = update.state.field(referenceHighlightField, false);
-
-    if (highlight) {
-        const elapsed = Date.now() - highlight.timestamp;
-
-        // If highlight is about to expire, schedule a view update to clear it
-        if (elapsed >= 2000 && elapsed < 2100) {
-            setTimeout(() => {
-                // Force a re-render by dispatching an empty transaction
-                if (update.view.state.field(referenceHighlightField, false)) {
-                    update.view.dispatch({});
-                }
-            }, 100);
-        }
-    }
-});
-
-// Helper function for escaping regex
-function escapeRegExp(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
