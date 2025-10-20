@@ -57,7 +57,7 @@ const NODE_HANDLERS: Record<string, NodeHandler> = {
     'Mark': handleMark,
     'Underline': handleUnderline,
     'Image': handleImage,
-    'LinkReference': handleLink, // Add this for reference-style links
+    'LinkReference': handleLink,
 };
 
 /**
