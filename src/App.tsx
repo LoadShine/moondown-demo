@@ -23,7 +23,7 @@ const initialContent = `# Moondown Editor - Comprehensive Test Document
 
 ### Links and References
 
-Here's a [link to GitHub](https://github.com) and an [internal reference](#header).
+Here's a [link to GitHub](https://github.com).
 
 Auto-linked URLs: https://www.apple.com and https://developer.mozilla.org
 
@@ -274,11 +274,8 @@ mailto:contact@moondown.app
 ### Standard Images
 ![Apple Logo](https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg)
 
-### Images with Titles
-![MacBook Pro](https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/MacBook_Pro_16%22_%282023%29.png/320px-MacBook_Pro_16%22_%282023%29.png "MacBook Pro 2023")
-
-### Image Links
-[![React Logo](https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/320px-React-icon.svg.png)](https://react.dev)
+### Error Images
+![MacBook Pro](https://unreachable-web-address.com/dummy.png)
 
 ---
 
@@ -350,22 +347,6 @@ This text has a footnote[^1]. Here's another one[^2].
 
 [^1]: This is the first footnote.
 [^2]: This is the second footnote with **bold** text.
-
-### Definition Lists
-Term 1
-:   Definition of term 1
-
-Term 2
-:   Definition of term 2
-    with additional details
-
-### Task Lists
-- [x] Completed task
-- [ ] Incomplete task
-- [x] Another completed task
-    - [x] Sub-task completed
-    - [ ] Sub-task incomplete
-- [ ] Final incomplete task
 
 ---
 
