@@ -120,7 +120,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
   /* Formatting styles for table content */
   table.table-helper td em {
     font-style: italic;
-    color: #6366f1;
   }
   
   table.table-helper td strong {
@@ -131,11 +130,9 @@ export default function computeCSS(edgeButtonSize: number): Element {
   table.table-helper td code {
     background-color: #f3f4f6;
     color: #e11d48;
-    padding: 3px 6px;
+    padding: 2px 4px;
     border-radius: 4px;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
-    font-size: 0.875em;
-    border: 1px solid #e5e7eb;
   }
   
   table.table-helper td del {
@@ -144,7 +141,7 @@ export default function computeCSS(edgeButtonSize: number): Element {
   }
   
   table.table-helper td mark {
-    background: linear-gradient(to bottom, #fef3c7, #fde68a);
+    background: #fef3c7;
     color: #92400e;
     padding: 2px 4px;
     border-radius: 3px;

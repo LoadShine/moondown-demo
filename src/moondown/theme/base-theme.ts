@@ -43,7 +43,15 @@ const light = {
     blockquoteColor3: "#64748b",
     blockquoteColorDeep: "#4b5563",
 
-    inlineCodeBg: "#EDF2F7",
+    // --- Styles aligned with table formatting ---
+    italic: "#6366f1",
+    underlineColor: "#3b82f6",
+    inlineCodeBg: "#f3f4f6",
+    inlineCodeColor: "#e11d48",
+    inlineCodeBorder: "#e5e7eb",
+    highlightBg: "#fef3c7",
+    highlightColor: "#92400e",
+
     slashCommandBg: "#ffffff",
     slashCommandBorder: "#e0e0e0",
     slashCommandHoverBg: "#f0f0f0",
@@ -92,7 +100,15 @@ const dark = {
     blockquoteColor3: "#94a3b8",
     blockquoteColorDeep: "#cbd5e1",
 
-    inlineCodeBg: "#2D3748",
+    // --- Styles aligned with table formatting ---
+    italic: "#818cf8",
+    underlineColor: "#60a5fa",
+    inlineCodeBg: "#0f172a",
+    inlineCodeColor: "#fb7185",
+    inlineCodeBorder: "#1e293b",
+    highlightBg: "linear-gradient(to bottom, #92400e, #78350f)",
+    highlightColor: "#fef3c7",
+
     slashCommandBg: "#2D3748",
     slashCommandBorder: "#4A5568",
     slashCommandHoverBg: "#4A5568",
@@ -374,11 +390,9 @@ const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) 
         ".cm-inline-code-widget": {
             fontFamily: codeFont,
             background: colors.inlineCodeBg,
-            color: colors.primaryText,
-            padding: "0 4px",
-            margin: "0 4px",
-            borderRadius: "3px",
-            display: "inline-block",
+            color: colors.inlineCodeColor,
+            padding: "2px 4px",
+            borderRadius: "4px",
         },
         ".cm-link-widget": {
             textDecoration: "none",
@@ -425,9 +439,22 @@ const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) 
             borderRadius: '8px',
             marginTop: '0.5em',
         },
-        ".cm-strikethrough-widget": { textDecoration: "line-through", color: colors.secondaryText },
-        ".cm-highlight-widget": { backgroundColor: "#FEFCBF", color: "#5c5400", padding: "2px 4px", borderRadius: "4px" },
-        ".cm-underline-widget": { textDecoration: "underline", color: colors.secondaryText },
+        ".cm-strikethrough-widget": {
+            textDecoration: "line-through",
+            opacity: "0.6"
+        },
+        ".cm-highlight-widget": {
+            background: colors.highlightBg,
+            color: colors.highlightColor,
+            padding: "2px 4px",
+            borderRadius: "4px"
+        },
+        ".cm-underline-widget": {
+            textDecoration: "underline",
+            textDecorationColor: colors.underlineColor,
+            textDecorationThickness: "2px",
+            textUnderlineOffset: "2px",
+        },
 
         // Slash Command
         ".cm-slash-command-menu": {
