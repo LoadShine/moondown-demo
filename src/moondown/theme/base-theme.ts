@@ -191,6 +191,43 @@ const createEditorTheme = (colors: typeof light | typeof dark, isDark: boolean) 
             }
         },
 
+        // Footnote styles
+        ".cm-footnote-widget": {
+            color: colors.lightBlue,
+            fontSize: "0.8em",
+            fontWeight: "500",
+            cursor: "pointer",
+            padding: "1px 2px",
+            borderRadius: "2px",
+            transition: "all 0.2s ease",
+            "&:hover": {
+                background: colors.lightBlue + "20",
+            }
+        },
+
+        ".cm-footnote-definition-widget": {
+            color: colors.secondaryText,
+            fontFamily: codeFont,
+            fontSize: "0.9em",
+            padding: "2px 6px",
+            borderRadius: "4px",
+            background: colors.inlineCodeBg,
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+            "&:hover": {
+                background: colors.lightBlue + "20",
+                color: colors.lightBlue,
+            }
+        },
+
+        ".cm-footnote-definition-line": {
+            paddingLeft: "8px",
+        },
+
+        ".cm-footnote-definition-content": {
+            color: colors.primaryText,
+        },
+
         ".cm-reference-highlight": {
             animation: `${isDark ? 'referenceHighlightDark' : 'referenceHighlightLight'} 2s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
             borderRadius: "4px",

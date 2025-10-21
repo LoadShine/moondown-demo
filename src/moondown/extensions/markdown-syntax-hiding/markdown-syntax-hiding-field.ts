@@ -16,7 +16,9 @@ import {
     handleStrikethrough,
     handleMark,
     handleUnderline,
-    handleImage, handleLinkDefinition
+    handleImage,
+    handleLinkDefinition,
+    handleFootnoteDefinition
 } from "./node-handlers";
 
 /**
@@ -85,11 +87,55 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
         // Track processed blockquote ranges to avoid duplicates
         const processedBlockquotes = new Set<string>();
 
+        // Track processed lines for footnote and link definitions
+        const processedDefinitionLines = new Set<number>();
+
+        // First pass: Process all footnote and link definitions by scanning all lines
+        // This ensures we catch all definitions regardless of syntax tree structure
+        for (let lineNum = 1; lineNum <= state.doc.lines; lineNum++) {
+            const line = state.doc.line(lineNum);
+            const lineText = line.text;
+
+            // Check for footnote definition first (higher priority)
+            if (/^\[\^([^\]]+)\]:\s*/.test(lineText)) {
+                processedDefinitionLines.add(lineNum);
+                const ctx: HandlerContext = {
+                    state,
+                    selection,
+                    isHidingEnabled,
+                    isSelected: selection.from <= line.to && selection.to >= line.from,
+                    start: line.from,
+                    end: line.to
+                };
+                decorations.push(...handleFootnoteDefinition(ctx));
+            }
+            // Check for link definition
+            else if (/^\[([^\]]+)\]:\s*\S+/.test(lineText)) {
+                processedDefinitionLines.add(lineNum);
+                const ctx: HandlerContext = {
+                    state,
+                    selection,
+                    isHidingEnabled,
+                    isSelected: selection.from <= line.to && selection.to >= line.from,
+                    start: line.from,
+                    end: line.to
+                };
+                decorations.push(...handleLinkDefinition(ctx));
+            }
+        }
+
+        // Second pass: Process syntax tree nodes (excluding already processed definition lines)
         syntaxTree(state).iterate({
             enter: (node) => {
                 const start = node.from;
                 const end = node.to;
                 const isSelected = selection.from <= end && selection.to >= start;
+
+                // Skip if this is a line we already processed as a definition
+                const startLine = state.doc.lineAt(start);
+                if (processedDefinitionLines.has(startLine.number)) {
+                    return false; // Skip this node and its children
+                }
 
                 const ctx: HandlerContext = {
                     state,
@@ -114,22 +160,6 @@ export const markdownSyntaxHidingField = StateField.define<DecorationSet>({
                         decorations.push(...handleBlockquote(ctx));
                     }
                     return;
-                }
-
-                // Check if this line is a link definition
-                const line = state.doc.lineAt(start);
-                const lineText = line.text;
-                if (/^\[([^\]]+)\]:\s*\S+/.test(lineText)) {
-                    const ctx: HandlerContext = {
-                        state,
-                        selection,
-                        isHidingEnabled,
-                        isSelected,
-                        start: line.from,
-                        end: line.to
-                    };
-                    decorations.push(...handleLinkDefinition(ctx));
-                    return false; // Skip children
                 }
 
                 // Handle other node types
