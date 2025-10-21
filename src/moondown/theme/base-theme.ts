@@ -106,7 +106,7 @@ const dark = {
     inlineCodeBg: "#0f172a",
     inlineCodeColor: "#fb7185",
     inlineCodeBorder: "#1e293b",
-    highlightBg: "linear-gradient(to bottom, #92400e, #78350f)",
+    highlightBg: "#92400e",
     highlightColor: "#fef3c7",
 
     slashCommandBg: "#2D3748",

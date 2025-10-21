@@ -209,10 +209,6 @@ export default function computeCSS(edgeButtonSize: number): Element {
   }
   
   /* Dark mode formatting styles */
-  .dark table.table-helper td em {
-    color: #818cf8;
-  }
-  
   .dark table.table-helper td strong {
     color: #f1f5f9;
     font-weight: 600;
@@ -225,7 +221,7 @@ export default function computeCSS(edgeButtonSize: number): Element {
   }
   
   .dark table.table-helper td mark {
-    background: linear-gradient(to bottom, #92400e, #78350f);
+    background: #92400e;
     color: #fef3c7;
   }
   
