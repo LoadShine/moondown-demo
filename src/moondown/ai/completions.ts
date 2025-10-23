@@ -1,6 +1,5 @@
 // src/moondown/ai/completions.ts
 import OpenAI from "openai";
-import {glmApiKey, glmBaseURL} from "./constants.ts";
 import {Stream} from "openai/streaming";
 
 // Define return types
@@ -8,8 +7,8 @@ type ChatCompletionResponse = OpenAI.Chat.Completions.ChatCompletion;
 type ChatCompletionStreamResponse = Stream<OpenAI.Chat.Completions.ChatCompletionChunk>;
 
 const openai = new OpenAI({
-    apiKey: glmApiKey,
-    baseURL: glmBaseURL,
+    apiKey: "nothing",
+    baseURL: "https://ai-api-proxy-nine.vercel.app/api/glm",
     dangerouslyAllowBrowser: true,
 });
 
@@ -46,7 +45,7 @@ export const chatCompletionStream = async (
 ): Promise<ChatCompletionStreamResponse> => {
     return await openai.chat.completions.create(
         {
-            model: 'glm-4-flash',
+            model: 'glm-4.5-flash',
             messages: [
                 {
                     role: "system",
