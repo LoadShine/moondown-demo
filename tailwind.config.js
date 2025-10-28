@@ -5,7 +5,7 @@ export default {
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
-    darkMode: 'class', // <--- 确保这一行存在
+    darkMode: 'class',
     theme: {
         extend: {},
     },

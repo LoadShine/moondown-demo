@@ -10,11 +10,10 @@ import { LIST_INDENT, LIST_PATTERNS } from "./constants";
 /**
  * Maximum number of bullet styles to cycle through
  */
-const BULLET_STYLE_COUNT = 3;
+const BULLET_STYLE_COUNT = 6;
 
 /**
  * Plugin to handle automatic list number updates
- * Listens to document changes and updates list numbering when needed
  */
 export const updateListPlugin = EditorView.updateListener.of((update) => {
     // Check if there's a manual update trigger
@@ -24,24 +23,19 @@ export const updateListPlugin = EditorView.updateListener.of((update) => {
             if (e.is(updateListEffect)) {
                 hasManualUpdate = true;
                 updateLists(update.view);
-                return; // If manual update exists, return early
+                return;
             }
         }
     }
 
-    // If no manual update but document changed, check if auto-update is needed
     if (!hasManualUpdate && update.docChanged) {
         let needsUpdate = false;
 
-        // Check if changes might affect list numbering
         for (const tr of update.transactions) {
             tr.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
                 const deletedText = update.startState.doc.sliceString(fromA, toA);
                 const insertedText = inserted.toString();
 
-                /**
-                 * Check if text contains list markers
-                 */
                 const hasListMarker = (text: string) => {
                     return LIST_PATTERNS.ANY.test(text) ||
                         new RegExp('\n' + LIST_PATTERNS.ANY.source.slice(1)).test(text);
@@ -52,7 +46,6 @@ export const updateListPlugin = EditorView.updateListener.of((update) => {
                     return;
                 }
 
-                // Check if lines around the change contain lists
                 const doc = update.state.doc;
                 try {
                     const fromLine = Math.max(1, doc.lineAt(Math.max(0, fromB - 1)).number - 1);
@@ -66,7 +59,6 @@ export const updateListPlugin = EditorView.updateListener.of((update) => {
                         }
                     }
                 } catch (_ignore) {
-                    // If error accessing lines, trigger update for safety
                     needsUpdate = true;
                 }
             });
@@ -82,7 +74,6 @@ export const updateListPlugin = EditorView.updateListener.of((update) => {
 
 /**
  * Plugin to replace bullet markers with styled decorations
- * Provides visual variety for different indentation levels
  */
 export const bulletListPlugin = ViewPlugin.fromClass(class {
     decorations: DecorationSet;
@@ -108,18 +99,22 @@ export const bulletListPlugin = ViewPlugin.fromClass(class {
                     if (node.name === 'ListItem' || node.name.includes('ListItem')) {
                         const line = view.state.doc.lineAt(node.from);
 
-                        const unorderedMatch = line.text.match(/^(\s*(?:>\s*)*)(\s*)([-*+])\s/);
+                        const blockquoteMatch = line.text.match(/^((?:>\s*)*)/);
+                        const blockquotePrefix = blockquoteMatch ? blockquoteMatch[1] : '';
+
+                        const remainingText = line.text.slice(blockquotePrefix.length);
+                        const unorderedMatch = remainingText.match(/^(\s*)([-*+])(\s+)/);
 
                         if (unorderedMatch) {
-                            const blockquotePrefix = unorderedMatch[1] || '';
-                            const indentation = unorderedMatch[2] || '';
-                            const marker = unorderedMatch[3];
+                            const indentation = unorderedMatch[1] || '';
+                            const marker = unorderedMatch[2];
+                            const spaceAfter = unorderedMatch[3];
 
                             const indentLevel = Math.floor(indentation.length / LIST_INDENT.SIZE);
                             const levelClass = `cm-bullet-list-l${indentLevel % BULLET_STYLE_COUNT}`;
 
                             const bulletStart = line.from + blockquotePrefix.length + indentation.length;
-                            const bulletEnd = bulletStart + marker.length + 1; // +1 for the space after marker
+                            const bulletEnd = bulletStart + marker.length + spaceAfter.length;
 
                             builder.add(
                                 bulletStart,
